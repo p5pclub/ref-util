@@ -29,11 +29,11 @@ foreach my $func ( keys %tests ) {
     is( $cb->($arg), 1, "$func($arg)" );
 
     eval { $cb->(); 1; } 
-    or do { like( $@ || 'Zombie error', qr/is_arrayref\(ref\)/, "$func()" ); };
+    or do { like( $@ || 'Zombie error', qr/$func\(ref\)/, "$func()" ); };
     
     eval { $cb->(undef); 1; } 
     or do {
-        like( $@ || 'Zombie error', qr/is_arrayref\(ref\)/, "$func(undef)" );
+        like( $@ || 'Zombie error', qr/$func\(ref\)/, "$func(undef)" );
     };
 }
 

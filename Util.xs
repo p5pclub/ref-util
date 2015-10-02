@@ -435,41 +435,49 @@ BOOT:
 SV *
 is_scalarref(SV *ref)
     PPCODE:
-        XSRETURN_IV( SvROK(ref) && SvTYPE(SvRV(ref)) < SVt_PVAV );
+        ( SvROK(ref) && SvTYPE(SvRV(ref)) < SVt_PVAV )
+        ? XSRETURN_YES : XSRETURN_NO;
 
 SV *
 is_arrayref(SV *ref)
     PPCODE:
-        XSRETURN_IV( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVAV );
+        ( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVAV )
+        ? XSRETURN_YES : XSRETURN_NO;
 
 SV *
 is_hashref(SV *ref)
     PPCODE:
-        XSRETURN_IV( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVHV );
+        ( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVHV )
+        ? XSRETURN_YES : XSRETURN_NO;
 
 SV *
 is_coderef(SV *ref)
     PPCODE:
-        XSRETURN_IV( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVCV );
+        ( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVCV )
+        ? XSRETURN_YES : XSRETURN_NO;
 
 SV *
 is_regexpref(SV *ref)
     PPCODE:
-        XSRETURN_IV( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_REGEXP );
+        ( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_REGEXP )
+        ? XSRETURN_YES : XSRETURN_NO;
 
 SV *
 is_globref(SV *ref)
     PPCODE:
-        XSRETURN_IV( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVGV );
+        ( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVGV )
+        ? XSRETURN_YES : XSRETURN_NO;
 
 SV *
 is_formatref(SV *ref)
     PPCODE:
-        XSRETURN_IV( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVFM );
+        ( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVFM )
+        ? XSRETURN_YES : XSRETURN_NO;
 
 SV *
 is_ioref(SV *ref)
     PPCODE:
-        XSRETURN_IV( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVIO );
+        ( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVIO )
+        ? XSRETURN_YES : XSRETURN_NO;
 
 #endif /* not USE_CUSTOM_OPS */
