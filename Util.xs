@@ -76,7 +76,7 @@ is_scalarref_pp(pTHX)
 {
     dSP;
     SV *ref = POPs;
-    mPUSHi( SvROK(ref) && SvTYPE(SvRV(ref)) < SVt_PVAV ? 1 : 0 );
+    PUSHs( SvROK(ref) && SvTYPE(SvRV(ref)) < SVt_PVAV ? &PL_sv_yes : &PL_sv_no );
     return NORMAL;
 }
 
@@ -85,7 +85,7 @@ is_arrayref_pp(pTHX)
 {
     dSP;
     SV *ref = POPs;
-    mPUSHi( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVAV ? 1 : 0 );
+    PUSHs( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVAV ? &PL_sv_yes : &PL_sv_no );
     return NORMAL;
 }
 
@@ -94,7 +94,7 @@ is_hashref_pp(pTHX)
 {
     dSP;
     SV *ref = POPs;
-    mPUSHi( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVCV ? 1 : 0 );
+    PUSHs( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVCV ? &PL_sv_yes : &PL_sv_no );
     return NORMAL;
 }
 
@@ -103,7 +103,7 @@ is_coderef_pp(pTHX)
 {
     dSP;
     SV *ref = POPs;
-    mPUSHi( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVCV ? 1 : 0 );
+    PUSHs( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVCV ? &PL_sv_yes : &PL_sv_no );
     return NORMAL;
 }
 
@@ -112,7 +112,7 @@ is_regexpref_pp(pTHX)
 {
     dSP;
     SV *ref = POPs;
-    mPUSHi( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_REGEXP ? 1 : 0 );
+    PUSHs( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_REGEXP ? &PL_sv_yes : &PL_sv_no );
     return NORMAL;
 }
 
@@ -121,7 +121,7 @@ is_globref_pp(pTHX)
 {
     dSP;
     SV *ref = POPs;
-    mPUSHi( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVGV ? 1 : 0 );
+    PUSHs( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVGV ? &PL_sv_yes : &PL_sv_no );
     return NORMAL;
 }
 
@@ -130,7 +130,7 @@ is_formatref_pp(pTHX)
 {
     dSP;
     SV *ref = POPs;
-    mPUSHi( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVFM ? 1 : 0 );
+    PUSHs( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVFM ? &PL_sv_yes : &PL_sv_no );
     return NORMAL;
 }
 
@@ -139,7 +139,7 @@ is_ioref_pp(pTHX)
 {
     dSP;
     SV *ref = POPs;
-    mPUSHi( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVIO ? 1 : 0 );
+    PUSHs( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVIO ? &PL_sv_yes : &PL_sv_no );
     return NORMAL;
 }
 
