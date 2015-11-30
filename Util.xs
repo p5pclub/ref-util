@@ -12,136 +12,70 @@
 # define USE_CUSTOM_OPS 0
 #endif
 
+
 #if USE_CUSTOM_OPS
+/* C pre-processor mini tutorial:
 
-static void
-THX_xsfunc_is_scalarref(pTHX_ CV *cv)
-{
-    croak("Original xsfunc_is_scalarref called");
-}
+    * The ## symbol below is the C preprocessor syntax for token concatenation.
 
-static void
-THX_xsfunc_is_arrayref(pTHX_ CV *cv)
-{
-    croak("Original xsfunc_is_arrayref called");
-}
+    So in:
 
-static void
-THX_xsfunc_is_hashref(pTHX_ CV *cv)
-{
-    croak("Original xsfunc_is_hashref called");
-}
+        #define foo(x) foo_ ## x
 
-static void
-THX_xsfunc_is_coderef(pTHX_ CV *cv)
-{
-    croak("Original xsfunc_is_coderef called");
-}
+    foo(x) would turn into foo_x
 
-static void
-THX_xsfunc_is_regexpref(pTHX_ CV *cv)
-{
-    croak("Original xsfunc_is_regexpref called");
-}
+    * The # symbol as a token prefix or sigil is the C preprocessor syntax for token
+      stringification. So in:
 
-static void
-THX_xsfunc_is_globref(pTHX_ CV *cv)
-{
-    croak("Original xsfunc_is_globref called");
-}
+        #define str(x) #x
 
-static void
-THX_xsfunc_is_formatref(pTHX_ CV *cv)
-{
-    croak("Original xsfunc_is_formatref called");
-}
+    str(foo) would turn into "foo"
 
-static void
-THX_xsfunc_is_ioref(pTHX_ CV *cv)
-{
-    croak("Original xsfunc_is_ioref called");
-}
+    * Strings in C/C preprocessor are concatenated when adjacent to each other:
 
-static XOP is_scalarref_xop;
-static XOP is_arrayref_xop;
-static XOP is_hashref_xop;
-static XOP is_coderef_xop;
-static XOP is_regexpref_xop;
-static XOP is_globref_xop;
-static XOP is_formatref_xop;
-static XOP is_ioref_xop;
+        "foo" "bar" "baz"
 
-static inline OP *
-is_scalarref_pp(pTHX)
-{
-    dSP;
-    SV *ref = POPs;
-    PUSHs( SvROK(ref) && SvTYPE(SvRV(ref)) < SVt_PVAV ? &PL_sv_yes : &PL_sv_no );
-    return NORMAL;
-}
+    is exactly equivalent to
 
-static inline OP *
-is_arrayref_pp(pTHX)
-{
-    dSP;
-    SV *ref = POPs;
-    PUSHs( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVAV ? &PL_sv_yes : &PL_sv_no );
-    return NORMAL;
-}
+        "foobarbaz"
 
-static inline OP *
-is_hashref_pp(pTHX)
-{
-    dSP;
-    SV *ref = POPs;
-    PUSHs( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVHV ? &PL_sv_yes : &PL_sv_no );
-    return NORMAL;
-}
+*/
 
-static inline OP *
-is_coderef_pp(pTHX)
-{
-    dSP;
-    SV *ref = POPs;
-    PUSHs( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVCV ? &PL_sv_yes : &PL_sv_no );
-    return NORMAL;
-}
 
-static inline OP *
-is_regexpref_pp(pTHX)
-{
-    dSP;
-    SV *ref = POPs;
-    PUSHs( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_REGEXP ? &PL_sv_yes : &PL_sv_no );
-    return NORMAL;
-}
+#define DECL_CROAK_FUNC(x) \
+    static void \
+    THX_xsfunc_ ## x (pTHX_ CV *cv) \
+    {\
+        croak("Original " #x " called"); \
+    }
 
-static inline OP *
-is_globref_pp(pTHX)
-{
-    dSP;
-    SV *ref = POPs;
-    PUSHs( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVGV ? &PL_sv_yes : &PL_sv_no );
-    return NORMAL;
-}
+#define DECL_XOP(x) \
+    static XOP x ## _xop;
 
-static inline OP *
-is_formatref_pp(pTHX)
-{
-    dSP;
-    SV *ref = POPs;
-    PUSHs( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVFM ? &PL_sv_yes : &PL_sv_no );
-    return NORMAL;
-}
+#define DECL_MAIN_FUNC(x,op,type)   \
+    static inline OP *              \
+    x ## _pp(pTHX)           \
+    {                               \
+        dSP;                        \
+        SV *ref = POPs;             \
+        PUSHs( SvROK(ref) && SvTYPE(SvRV(ref)) op type ? &PL_sv_yes : &PL_sv_no ); \
+        return NORMAL;  \
+    }
 
-static inline OP *
-is_ioref_pp(pTHX)
-{
-    dSP;
-    SV *ref = POPs;
-    PUSHs( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVIO ? &PL_sv_yes : &PL_sv_no );
-    return NORMAL;
-}
+#define DECL(x,op,type) \
+    DECL_CROAK_FUNC(x)  \
+    DECL_XOP(x)         \
+    DECL_MAIN_FUNC(x,op,type)
+
+
+DECL(is_scalarref,    <,  SVt_PVAV)
+DECL(is_arrayref,     ==, SVt_PVAV)
+DECL(is_hashref,      ==, SVt_PVHV)
+DECL(is_coderef,      ==, SVt_PVCV)
+DECL(is_regexpref,    ==, SVt_REGEXP)
+DECL(is_globref,      ==, SVt_PVGV)
+DECL(is_formatref,    ==, SVt_PVFM)
+DECL(is_ioref,        ==, SVt_PVIO)
 
 static OP *
 THX_ck_entersub_args_is_scalarref(pTHX_ OP *entersubop, GV *namegv, SV *ckobj)
