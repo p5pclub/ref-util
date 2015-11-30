@@ -94,7 +94,7 @@ is_hashref_pp(pTHX)
 {
     dSP;
     SV *ref = POPs;
-    PUSHs( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVCV ? &PL_sv_yes : &PL_sv_no );
+    PUSHs( SvROK(ref) && SvTYPE(SvRV(ref)) == SVt_PVHV ? &PL_sv_yes : &PL_sv_no );
     return NORMAL;
 }
 
