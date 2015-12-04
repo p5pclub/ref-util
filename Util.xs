@@ -12,24 +12,30 @@
 # define USE_CUSTOM_OPS 0
 #endif
 
+#define XSUB_BODY(ref, op, type) \
+    ( SvROK(ref) && SvTYPE(SvRV(ref)) op type ) \
+    ? XSRETURN_YES : XSRETURN_NO
+
 #if USE_CUSTOM_OPS
 
-#define DECL_CROAK_FUNC(x) \
+#define DECL_CROAK_FUNC(x, op, type) \
     static void \
     THX_xsfunc_ ## x (pTHX_ CV *cv) \
-    {\
-        croak("Original " #x " called"); \
+    {                               \
+        dSP;                        \
+        SV *ref = POPs;             \
+        PUSHs( SvROK(ref) && SvTYPE(SvRV(ref)) op type ? &PL_sv_yes : &PL_sv_no ); \
     }
 
 #define DECL_XOP(x) \
     static XOP x ## _xop;
 
-#define DECL_MAIN_FUNC(x,op,type)   \
-    static inline OP *              \
-    x ## _pp(pTHX)           \
-    {                               \
-        dSP;                        \
-        SV *ref = POPs;             \
+#define DECL_MAIN_FUNC(x,op,type) \
+    static inline OP *            \
+    x ## _pp(pTHX)                \
+    {                             \
+        dSP;                      \
+        SV *ref = POPs;           \
         PUSHs( SvROK(ref) && SvTYPE(SvRV(ref)) op type ? &PL_sv_yes : &PL_sv_no ); \
         return NORMAL;  \
     }
@@ -47,15 +53,11 @@
         return newop; \
     }
 
-#define DECL(x,op,type) \
-    DECL_CROAK_FUNC(x)  \
-    DECL_XOP(x)         \
-    DECL_MAIN_FUNC(x,op,type) \
+#define DECL(x,op,type)          \
+    DECL_CROAK_FUNC(x, op, type) \
+    DECL_XOP(x)                  \
+    DECL_MAIN_FUNC(x,op,type)    \
     DECL_CALL_CHK_FUNC(x)
-
-#define XSUB_BODY(op, type) \
-    ( SvROK(ref) && SvTYPE(SvRV(ref)) op type ) \
-    ? XSRETURN_YES : XSRETURN_NO
 
 DECL(is_scalarref, <,  SVt_PVAV)
 DECL(is_arrayref,  ==, SVt_PVAV)
@@ -102,41 +104,41 @@ BOOT:
 SV *
 is_scalarref(SV *ref)
     PPCODE:
-        XSUB_BODY( <, SVt_PVAV );
+        XSUB_BODY( ref, <, SVt_PVAV );
 
 SV *
 is_arrayref(SV *ref)
     PPCODE:
-        XSUB_BODY( ==, SVt_PVAV );
+        XSUB_BODY( ref, ==, SVt_PVAV );
 
 SV *
 is_hashref(SV *ref)
     PPCODE:
-        XSUB_BODY( ==, SVt_PVHV );
+        XSUB_BODY( ref, ==, SVt_PVHV );
 
 SV *
 is_coderef(SV *ref)
     PPCODE:
-        XSUB_BODY( ==, SVt_PVCV );
+        XSUB_BODY( ref, ==, SVt_PVCV );
 
 SV *
 is_regexpref(SV *ref)
     PPCODE:
-        XSUB_BODY( ==, SVt_REGEXP );
+        XSUB_BODY( ref, ==, SVt_REGEXP );
 
 SV *
 is_globref(SV *ref)
     PPCODE:
-        XSUB_BODY( ==, SVt_PVGV );
+        XSUB_BODY( ref, ==, SVt_PVGV );
 
 SV *
 is_formatref(SV *ref)
     PPCODE:
-        XSUB_BODY( ==, SVt_PVFM );
+        XSUB_BODY( ref, ==, SVt_PVFM );
 
 SV *
 is_ioref(SV *ref)
     PPCODE:
-        XSUB_BODY( ==, SVt_PVIO );
+        XSUB_BODY( ref, ==, SVt_PVIO );
 
 #endif /* not USE_CUSTOM_OPS */
