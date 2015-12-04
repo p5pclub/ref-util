@@ -11,6 +11,7 @@ our %EXPORT_TAGS = ( 'all' => [qw<
     is_scalarref is_arrayref is_hashref is_coderef is_regexpref
     is_globref is_formatref is_ioref
 >] );
+our @EXPORT      = ();
 our @EXPORT_OK   = ( @{ $EXPORT_TAGS{'all'} } );
 
 XSLoader::load('Ref::Util', $VERSION);
@@ -28,7 +29,7 @@ Ref::Util - Utility functions for checking references
 =head1 DESCRIPTION
 
 Ref::Util introduces several functions to help identify references in a
-faster, but mostly B<smarter>, way. In short:
+faster and B<smarter> way. In short:
 
     ref $foo eq 'ARRAY'
 
@@ -54,6 +55,13 @@ B<ARRAY>, B<HASH>, etc.) or the package it's blessed into.
 When calling C<is_arrayref> (et. al.), you check the variable flags,
 so even if it's blessed, you know what type of variable is blessed.
 
+    my $foo = bless {}, 'PKG';
+    ref($foo) eq 'HASH'; # fails
+
+    use Ref::Util 'is_hashref';
+    my $foo = bless {}, 'PKG';
+    is_hashref($foo); # works
+
 =item * Supports overloaded variables
 
 If you've overloaded anything (C<eq>, stringification), you will
@@ -74,41 +82,58 @@ XS parts optional.
 
 =head1 SUBROUTINES
 
-=head2 is_scalarref
+=head2 is_scalarref($ref)
 
-    is_scalarref(\$foo);
+Check for a scalar reference.
 
-=head2 is_arrayref
+    is_scalarref(\"hello");
+    is_scalarref(\30);
+    is_scalarref(\$value);
+
+=head2 is_arrayref($ref)
+
+Check for an array reference.
 
     is_arrayref([]);
 
-=head2 is_hashref
+=head2 is_hashref($ref)
+
+Check for a hash reference.
 
     is_hashref({});
 
-=head2 is_coderef
+=head2 is_coderef($ref)
+
+Check for a code reference.
 
     is_coderef( sub {} );
 
-=head2 is_regexpref
+=head2 is_regexpref($ref)
+
+Check for a regular expression (regex, regexp) reference.
 
     is_regexpref( qr// );
 
-=head2 is_globref
+=head2 is_globref($ref)
 
-    is_globref( *foo );
+Check for a glob reference.
 
-=head2 is_formatref
+    is_globref( \*STDIN );
+
+=head2 is_formatref($ref)
+
+Check for a format reference.
 
     # set up format in STDOUT
     format STDOUT =
-    @
     .
 
     # now we can test it
-    is_formatref( *STDOUT{FORMAT} );
+    is_formatref( *main::STDOUT{'FORMAT'} );
 
-=head2 is_ioref
+=head2 is_ioref($ref)
+
+Check for an IO reference.
 
     is_ioref( *STDOUT{IO} );
 
@@ -117,6 +142,22 @@ XS parts optional.
 =over 4
 
 =item * L<Params::Classify>
+
+=back
+
+=head1 THANKS
+
+The following people have been invaluable in their feedback and support.
+
+=over 4
+
+=item * Yves Orton
+
+=item * Steffen Müller
+
+=item * Jarkko Hietaniemi
+
+=item * Mattia Barbon
 
 =back
 
