@@ -12,9 +12,20 @@
 # define USE_CUSTOM_OPS 0
 #endif
 
+#define CODE_SUB(ref, op, type) \
+    ( SvROK(ref) && SvTYPE(SvRV(ref)) op type )
+
 #define XSUB_BODY(ref, op, type) \
-    ( SvROK(ref) && SvTYPE(SvRV(ref)) op type ) \
+    CODE_SUB(ref, op, type)      \
     ? XSRETURN_YES : XSRETURN_NO
+
+#define FUNC_BODY(op, type)      \
+    dSP;                         \
+    SV *ref = POPs;              \
+    PUSHs(                       \
+        CODE_SUB(ref, op, type)  \
+        ? &PL_sv_yes : &PL_sv_no \
+    )
 
 #if USE_CUSTOM_OPS
 
@@ -22,9 +33,7 @@
     static void \
     THX_xsfunc_ ## x (pTHX_ CV *cv) \
     {                               \
-        dSP;                        \
-        SV *ref = POPs;             \
-        PUSHs( SvROK(ref) && SvTYPE(SvRV(ref)) op type ? &PL_sv_yes : &PL_sv_no ); \
+        FUNC_BODY(op, type);        \
     }
 
 #define DECL_XOP(x) \
@@ -34,10 +43,8 @@
     static inline OP *            \
     x ## _pp(pTHX)                \
     {                             \
-        dSP;                      \
-        SV *ref = POPs;           \
-        PUSHs( SvROK(ref) && SvTYPE(SvRV(ref)) op type ? &PL_sv_yes : &PL_sv_no ); \
-        return NORMAL;  \
+        FUNC_BODY(op, type);      \
+        return NORMAL;            \
     }
 
 #define DECL_CALL_CHK_FUNC(x) \
