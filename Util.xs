@@ -30,10 +30,10 @@
 #if USE_CUSTOM_OPS
 
 #define DECL_RUNTIME_FUNC(x, op, type) \
-    static void \
-    THX_xsfunc_ ## x (pTHX_ CV *cv) \
-    {                               \
-        FUNC_BODY(op, type);        \
+    static void                        \
+    THX_xsfunc_ ## x (pTHX_ CV *cv)    \
+    {                                  \
+        FUNC_BODY(op, type);           \
     }
 
 #define DECL_XOP(x) \
@@ -47,17 +47,17 @@
         return NORMAL;            \
     }
 
-#define DECL_CALL_CHK_FUNC(x) \
-    static OP *            \
-    THX_ck_entersub_args_ ## x(pTHX_ OP *entersubop, GV *namegv, SV *ckobj) \
-    { \
-        entersubop = ck_entersub_args_proto(entersubop, namegv, ckobj); \
+#define DECL_CALL_CHK_FUNC(x)                                                       \
+    static OP *                                                                     \
+    THX_ck_entersub_args_ ## x(pTHX_ OP *entersubop, GV *namegv, SV *ckobj)         \
+    {                                                                               \
+        entersubop = ck_entersub_args_proto(entersubop, namegv, ckobj);             \
         OP *arg = cLISTOPx( cUNOPx( entersubop )->op_first )->op_first->op_sibling; \
-        arg->op_sibling = NULL; \
-        OP *newop = newUNOP( OP_NULL, 0, arg ); \
-        newop->op_type   = OP_CUSTOM; \
-        newop->op_ppaddr = x ## _pp; \
-        return newop; \
+        arg->op_sibling = NULL;                                                     \
+        OP *newop = newUNOP( OP_NULL, 0, arg );                                     \
+        newop->op_type   = OP_CUSTOM;                                               \
+        newop->op_ppaddr = x ## _pp;                                                \
+        return newop;                                                               \
     }
 
 #define DECL(x,op,type)            \
@@ -81,14 +81,14 @@ MODULE = Ref::Util		PACKAGE = Ref::Util
 
 #if USE_CUSTOM_OPS
 
-#define SET_OP(x, ref) \
-    { \
-        XopENTRY_set(& x ##_xop, xop_name, #x "_xop"); \
-        XopENTRY_set(& x ##_xop, xop_desc, "'" ref "' ref check"); \
-        Perl_custom_op_register(aTHX_ x ##_pp, & x ##_xop); \
-        CV *cv = newXSproto_portable( \
-            "Ref::Util::" #x, THX_xsfunc_ ## x, __FILE__, "$" \
-        ); \
+#define SET_OP(x, ref)                                                \
+    {                                                                 \
+        XopENTRY_set(& x ##_xop, xop_name, #x "_xop");                \
+        XopENTRY_set(& x ##_xop, xop_desc, "'" ref "' ref check");    \
+        Perl_custom_op_register(aTHX_ x ##_pp, & x ##_xop);           \
+        CV *cv = newXSproto_portable(                                 \
+            "Ref::Util::" #x, THX_xsfunc_ ## x, __FILE__, "$"         \
+        );                                                            \
         cv_set_call_checker(cv, THX_ck_entersub_args_ ## x, (SV*)cv); \
     }
 
