@@ -29,7 +29,7 @@
 
 #if USE_CUSTOM_OPS
 
-#define DECL_CROAK_FUNC(x, op, type) \
+#define DECL_RUNTIME_FUNC(x, op, type) \
     static void \
     THX_xsfunc_ ## x (pTHX_ CV *cv) \
     {                               \
@@ -60,10 +60,10 @@
         return newop; \
     }
 
-#define DECL(x,op,type)          \
-    DECL_CROAK_FUNC(x, op, type) \
-    DECL_XOP(x)                  \
-    DECL_MAIN_FUNC(x,op,type)    \
+#define DECL(x,op,type)            \
+    DECL_RUNTIME_FUNC(x, op, type) \
+    DECL_XOP(x)                    \
+    DECL_MAIN_FUNC(x,op,type)      \
     DECL_CALL_CHK_FUNC(x)
 
 DECL(is_scalarref, <,  SVt_PVAV)
