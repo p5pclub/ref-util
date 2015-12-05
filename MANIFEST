@@ -8,3 +8,5 @@ t/dynamic.t
 t/expr.t
 t/functions.t
 Util.xs
+README
+Changes
