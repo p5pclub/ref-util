@@ -22,9 +22,15 @@ __END__
 
 =pod
 
+=encoding utf8
+
 =head1 NAME
 
 Ref::Util - Utility functions for checking references
+
+=head1 VERSION
+
+0.001
 
 =head1 DESCRIPTION
 

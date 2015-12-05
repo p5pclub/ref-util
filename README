@@ -1,0 +1,123 @@
+NAME
+    Ref::Util - Utility functions for checking references
+
+DESCRIPTION
+    Ref::Util introduces several functions to help identify references in a
+    faster and smarter way. In short:
+
+        ref $foo eq 'ARRAY'
+
+        # is now:
+
+        is_arrayref($foo)
+
+    The difference:
+
+    *   No comparison against a string constant
+
+        When you call "ref", you stringify the reference and then compare it
+        to some string constant (like "ARRAY" or "HASH"). Not just awkward,
+        it's brittle since you can mispell the string.
+
+    *   Supports blessed variables
+
+        When calling "ref", you receive either the reference type (SCALAR,
+        ARRAY, HASH, etc.) or the package it's blessed into.
+
+        When calling "is_arrayref" (et. al.), you check the variable flags,
+        so even if it's blessed, you know what type of variable is blessed.
+
+            my $foo = bless {}, 'PKG';
+            ref($foo) eq 'HASH'; # fails
+
+            use Ref::Util 'is_hashref';
+            my $foo = bless {}, 'PKG';
+            is_hashref($foo); # works
+
+    *   Supports overloaded variables
+
+        If you've overloaded anything ("eq", stringification), you will
+        probably get bitten. However, these functions do not care since they
+        only check flags.
+
+    Additionally, two implementations are available, depending on the perl
+    version you have. For perl that supports Custom OPs, we actually add an
+    OP code (which is faster), and for perls that do not, we include an
+    implementation that just calls an XS function - which is still faster
+    than the Pure-Perl equivalent.
+
+    We might also introduce a Pure-Perl version of everything, allowing to
+    install this module where a compiler is not available, making the XS
+    parts optional.
+
+SUBROUTINES
+  is_scalarref($ref)
+    Check for a scalar reference.
+
+        is_scalarref(\"hello");
+        is_scalarref(\30);
+        is_scalarref(\$value);
+
+  is_arrayref($ref)
+    Check for an array reference.
+
+        is_arrayref([]);
+
+  is_hashref($ref)
+    Check for a hash reference.
+
+        is_hashref({});
+
+  is_coderef($ref)
+    Check for a code reference.
+
+        is_coderef( sub {} );
+
+  is_regexpref($ref)
+    Check for a regular expression (regex, regexp) reference.
+
+        is_regexpref( qr// );
+
+  is_globref($ref)
+    Check for a glob reference.
+
+        is_globref( \*STDIN );
+
+  is_formatref($ref)
+    Check for a format reference.
+
+        # set up format in STDOUT
+        format STDOUT =
+        .
+
+        # now we can test it
+        is_formatref( *main::STDOUT{'FORMAT'} );
+
+  is_ioref($ref)
+    Check for an IO reference.
+
+        is_ioref( *STDOUT{IO} );
+
+SEE ALSO
+    *   Params::Classify
+
+THANKS
+    The following people have been invaluable in their feedback and support.
+
+    *   Yves Orton
+
+    *   Steffen Müller
+
+    *   Jarkko Hietaniemi
+
+    *   Mattia Barbon
+
+AUTHORS
+    *   Vikentiy Fesunov
+
+    *   Sawyer X
+
+    *   Gonzalo Diethelm
+
+    *   p5pclub
+
