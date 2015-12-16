@@ -47,11 +47,52 @@ The difference:
 
 =over 4
 
+=item * Fast
+
+The benchmark:
+
+    my $bench = Dumbbench->new(
+        target_rel_precision => 0.005,
+        initial_runs         => 20,
+    );
+
+    my $ref = [];
+    $bench->add_instances(
+        Dumbbench::Instance::PerlSub->new(
+            name => 'XS',
+            code => sub { Ref::Util::is_arrayref($ref) for(1..1e7) },
+        ),
+
+        Dumbbench::Instance::PerlSub->new(
+            name => 'reftype',
+            code => sub { reftype($ref) eq 'ARRAY' for(1..1e7) },
+        ),
+
+        Dumbbench::Instance::PerlSub->new(
+            name => 'PP',
+            code => sub { ref($ref) eq 'ARRAY' for(1..1e7) },
+        ),
+    );
+
+The results:
+
+    XS: Ran 27 iterations (7 outliers).
+    XS: Rounded run time per iteration: 2.9665e-01 +/- 1.2e-04 (0.0%)
+    reftype: Ran 26 iterations (6 outliers).
+    reftype: Rounded run time per iteration: 9.1131e-01 +/- 7.2e-04 (0.1%)
+    PP: Ran 29 iterations (9 outliers).
+    PP: Rounded run time per iteration: 6.0823e-01 +/- 4.4e-04 (0.1%)
+
 =item * No comparison against a string constant
 
 When you call C<ref>, you stringify the reference and then compare it
 to some string constant (like C<ARRAY> or C<HASH>). Not just awkward,
 it's brittle since you can mispell the string.
+
+If you use L<Scalar::Util>'s C<reftype>, you still compare it as a
+string:
+
+    if ( reftype($foo) eq 'ARRAY' ) { ... }
 
 =item * Supports blessed variables
 
@@ -79,6 +120,13 @@ and instead require you to figure out B<how> to use them. This leads to
 code that has to test different abilities (in C<eval>, so it doesn't
 crash) and to interfaces that get around what a person thought you would
 do with a variable. Ugh. Double Ugh. Also, /ignore!
+
+=item * Susceptible to change
+
+On a new enough Perl (2010+), it will use the op code implementation
+(see below), which, in case the op tree changes, it will have to be
+updated. That's not likely to happen and if any such changes arise,
+it will be made known.
 
 =back
 
@@ -165,6 +213,8 @@ Check for an IO reference.
 =over 4
 
 =item * L<Params::Classify>
+
+=item * L<Scalar::Util>
 
 =back
 
