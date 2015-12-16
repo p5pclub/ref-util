@@ -6,7 +6,7 @@ use XSLoader;
 
 use Exporter 5.57 'import';
 
-our $VERSION     = '0.002';
+our $VERSION     = '0.003';
 our %EXPORT_TAGS = ( 'all' => [qw<
     is_scalarref is_arrayref is_hashref is_coderef is_regexpref
     is_globref is_formatref is_ioref
@@ -30,7 +30,7 @@ Ref::Util - Utility functions for checking references
 
 =head1 VERSION
 
-0.002
+0.003
 
 =head1 DESCRIPTION
 
@@ -68,11 +68,17 @@ so even if it's blessed, you know what type of variable is blessed.
     my $foo = bless {}, 'PKG';
     is_hashref($foo); # works
 
-=item * Supports overloaded variables
+=item * Ignores overloading
 
 If you've overloaded anything (C<eq>, stringification), you will
-probably get bitten. However, these functions do not care since they
-only check flags.
+probably get bitten by C<ref>. However, these functions do not care about
+overloaded and only check the variable type.
+
+Overloading makes your variables opaque and hide away B<what> they are
+and instead require you to figure out B<how> to use them. This leads to
+code that has to test different abilities (in C<eval>, so it doesn't
+crash) and to interfaces that get around what a person thought you would
+do with a variable. Ugh. Double Ugh. Also, /ignore!
 
 =back
 
@@ -85,6 +91,17 @@ faster than the Pure-Perl equivalent.
 We might also introduce a Pure-Perl version of everything, allowing
 to install this module where a compiler is not available, making the
 XS parts optional.
+
+=head1 EXPORT
+
+Nothing is exported by default. You can ask for specific subroutines
+(described below) or ask for all subroutines at once:
+
+    use Ref::Util qw<is_scalarref is_arrayref is_hashref ...>;
+
+    # or
+
+    use Ref::Util ':all';
 
 =head1 SUBROUTINES
 
