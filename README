@@ -1,6 +1,9 @@
 NAME
     Ref::Util - Utility functions for checking references
 
+VERSION
+    0.004
+
 DESCRIPTION
     Ref::Util introduces several functions to help identify references in a
     faster and smarter way. In short:
@@ -13,11 +16,54 @@ DESCRIPTION
 
     The difference:
 
+    *   Fast
+
+        The benchmark:
+
+            my $bench = Dumbbench->new(
+                target_rel_precision => 0.005,
+                initial_runs         => 20,
+            );
+
+            my $ref = [];
+            $bench->add_instances(
+                Dumbbench::Instance::PerlSub->new(
+                    name => 'XS',
+                    code => sub { Ref::Util::is_arrayref($ref) for(1..1e7) },
+                ),
+
+                Dumbbench::Instance::PerlSub->new(
+                    name => 'reftype',
+                    code => sub { reftype($ref) eq 'ARRAY' for(1..1e7) },
+                ),
+
+                Dumbbench::Instance::PerlSub->new(
+                    name => 'PP',
+                    code => sub { ref($ref) eq 'ARRAY' for(1..1e7) },
+                ),
+            );
+
+        The results:
+
+            XS:      Ran 27 iterations (6 outliers).
+            XS:      Rounded run time per iteration: 3.0093e-01 +/- 4.4e-04 (0.1%)
+
+            reftype: Ran 25 iterations (5 outliers).
+            reftype: Rounded run time per iteration: 9.173e-01 +/- 1.2e-03 (0.1%)
+
+            PP:      Ran 26 iterations (6 outliers).
+            PP:      Rounded run time per iteration: 6.1437e-01 +/- 3.4e-04 (0.1%)
+
     *   No comparison against a string constant
 
         When you call "ref", you stringify the reference and then compare it
         to some string constant (like "ARRAY" or "HASH"). Not just awkward,
         it's brittle since you can mispell the string.
+
+        If you use Scalar::Util's "reftype", you still compare it as a
+        string:
+
+            if ( reftype($foo) eq 'ARRAY' ) { ... }
 
     *   Supports blessed variables
 
@@ -34,11 +80,57 @@ DESCRIPTION
             my $foo = bless {}, 'PKG';
             is_hashref($foo); # works
 
-    *   Supports overloaded variables
+    *   Ignores overloading
 
-        If you've overloaded anything ("eq", stringification), you will
-        probably get bitten. However, these functions do not care since they
-        only check flags.
+        These functions ignore overloaded operators and simply check the
+        variable type. Overloading will likely not ever be supported, since
+        I deem it problematic and confusing.
+
+        Overloading makes your variables opaque containers and hides away
+        what they are and instead require you to figure out how to use them.
+        This leads to code that has to test different abilities (in "eval",
+        so it doesn't crash) and to interfaces that get around what a person
+        thought you would do with a variable. Ugh. Double Ugh. For this
+        reason they are not supported.
+
+        This is also not duck-typing, as at least one person suggested. Duck
+        typing provides a method that *works* and has different
+        implementations. The difference is that here we have different
+        methods (stringification, array dereferencing, hash dereferencing,
+        callbacks, greater-than comparsion, etc.) which have to be tested
+        each individually. This is the opposite of duck-typing. Also, in
+        duck-typing you can introspect to know what is available, and
+        overloading does not lend to that.
+
+        Overloading is cool, but terribly horrible. 'Nuff said.
+
+    *   Possibly susceptible to change
+
+        On a new enough Perl (2010+), it will use the op code implementation
+        (see below), which, in case the op tree changes, it will have to be
+        updated. That's not likely to happen but if any such changes arise,
+        the code will be updated to fix it.
+
+    *   Ignores subtle types:
+
+        The following types, provided by Scalar::Util's "reftype", are not
+        supported:
+
+        *   "VSTRING"
+
+            This is a "PVMG" ("normal" variable) with a flag set for
+            VSTRINGs. Since this is not a reference, it is not supported.
+
+        *   "LVALUE"
+
+            A variable that delegates to another scalar. Since this is not a
+            reference, it is not supported.
+
+        *   "INVLIST"
+
+            I couldn't find documentation for this type.
+
+        Support might be added, if a good reason arises.
 
     Additionally, two implementations are available, depending on the perl
     version you have. For perl that supports Custom OPs, we actually add an
@@ -49,6 +141,16 @@ DESCRIPTION
     We might also introduce a Pure-Perl version of everything, allowing to
     install this module where a compiler is not available, making the XS
     parts optional.
+
+EXPORT
+    Nothing is exported by default. You can ask for specific subroutines
+    (described below) or ask for all subroutines at once:
+
+        use Ref::Util qw<is_scalarref is_arrayref is_hashref ...>;
+
+        # or
+
+        use Ref::Util ':all';
 
 SUBROUTINES
   is_scalarref($ref)
@@ -98,8 +200,15 @@ SUBROUTINES
 
         is_ioref( *STDOUT{IO} );
 
+  is_refref($ref)
+    Check for a reference to a reference.
+
+        is_refref( \[] ); # reference to array reference
+
 SEE ALSO
     *   Params::Classify
+
+    *   Scalar::Util
 
 THANKS
     The following people have been invaluable in their feedback and support.
