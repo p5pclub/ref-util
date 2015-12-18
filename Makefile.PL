@@ -10,5 +10,18 @@ WriteMakefile(
     DEFINE         => '',
     INC            => '-I.',
     OBJECT         => '$(O_FILES)',
+    META_MERGE => {
+        'meta-spec' => { version => 2 },
+        resources => {
+            bugtracker => {
+                web  => 'https://github.com/p5pclub/ref-util/issues',
+            },
+            repository => {
+                type => 'git',
+                url  => 'https://github.com/p5pclub/ref-util.git',
+                web  => 'https://github.com/p5pclub/ref-util',
+            },
+        },
+    },
 );
 
