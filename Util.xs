@@ -4,8 +4,6 @@
 #include "XSUB.h"
 #include "ppport.h"
 
-/* C functions */
-
 #if defined(cv_set_call_checker) && defined(XopENTRY_set)
 # define USE_CUSTOM_OPS 1
 #else
@@ -158,11 +156,11 @@ SV *
 is_refref(SV *ref)
     PPCODE:
         /*
-            There's SVt_RV but it's aliased to SVt_IV,
+           There's SVt_RV but it's aliased to SVt_IV,
            so that would mean any check for reference
            would also match any reference to an integer.
-           Instead we provide an integer which will explicitly NOT MATCH,
-           which will force the macro above to also check for reference
+           Instead we provide an integer which will explicitly NOT MATCH.
+           That will force the macro above to also check for reference
            to reference.
            If you find this awkward, Please teach me a better way. :)
         */
