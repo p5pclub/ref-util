@@ -30,7 +30,7 @@ Ref::Util - Utility functions for checking references
 
 =head1 VERSION
 
-0.004
+0.005
 
 =head1 DESCRIPTION
 
