@@ -111,22 +111,59 @@ so even if it's blessed, you know what type of variable is blessed.
 
 =item * Ignores overloading
 
-If you've overloaded anything (C<eq>, stringification), you will
-probably get bitten by C<ref>. However, these functions do not care about
-overloaded and only check the variable type.
+These functions ignore overloaded operators and simply check the
+variable type. Overloading will likely not ever be supported, since I
+deem it problematic and confusing.
 
-Overloading makes your variables opaque and hide away B<what> they are
-and instead require you to figure out B<how> to use them. This leads to
-code that has to test different abilities (in C<eval>, so it doesn't
-crash) and to interfaces that get around what a person thought you would
-do with a variable. Ugh. Double Ugh. Also, /ignore!
+Overloading makes your variables opaque containers and hides away
+B<what> they are and instead require you to figure out B<how> to use
+them. This leads to code that has to test different abilities (in
+C<eval>, so it doesn't crash) and to interfaces that get around what
+a person thought you would do with a variable. Ugh. Double Ugh.
+For this reason they are not supported.
 
-=item * Susceptible to change
+This is also not duck-typing, as at least one person suggested. Duck
+typing provides a method that *works* and has different
+implementations. The difference is that here we have different methods
+(stringification, array dereferencing, hash dereferencing, callbacks,
+greater-than comparsion, etc.) which have to be tested each
+individually. This is the B<opposite> of duck-typing. Also, in
+duck-typing you can introspect to know what is available, and
+overloading does not lend to that.
+
+Overloading is cool, but terribly horrible. 'Nuff said.
+
+=item * Possibly susceptible to change
 
 On a new enough Perl (2010+), it will use the op code implementation
 (see below), which, in case the op tree changes, it will have to be
-updated. That's not likely to happen and if any such changes arise,
-it will be made known.
+updated. That's not likely to happen but if any such changes arise,
+the code will be updated to fix it.
+
+=item * Ignores subtle types:
+
+The following types, provided by L<Scalar::Util>'s C<reftype>, are
+not supported:
+
+=over 4
+
+=item * C<VSTRING>
+
+This is a C<PVMG> ("normal" variable) with a flag set for VSTRINGs.
+Since this is not a reference, it is not supported.
+
+=item * C<LVALUE>
+
+A variable that delegates to another scalar. Since this is not a
+reference, it is not supported.
+
+=item * C<INVLIST>
+
+I couldn't find documentation for this type.
+
+=back
+
+Support might be added, if a good reason arises.
 
 =back
 
