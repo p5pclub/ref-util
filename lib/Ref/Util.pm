@@ -76,12 +76,14 @@ The benchmark:
 
 The results:
 
-    XS: Ran 27 iterations (7 outliers).
-    XS: Rounded run time per iteration: 2.9665e-01 +/- 1.2e-04 (0.0%)
-    reftype: Ran 26 iterations (6 outliers).
-    reftype: Rounded run time per iteration: 9.1131e-01 +/- 7.2e-04 (0.1%)
-    PP: Ran 29 iterations (9 outliers).
-    PP: Rounded run time per iteration: 6.0823e-01 +/- 4.4e-04 (0.1%)
+    XS:      Ran 27 iterations (6 outliers).
+    XS:      Rounded run time per iteration: 3.0093e-01 +/- 4.4e-04 (0.1%)
+
+    reftype: Ran 25 iterations (5 outliers).
+    reftype: Rounded run time per iteration: 9.173e-01 +/- 1.2e-03 (0.1%)
+
+    PP:      Ran 26 iterations (6 outliers).
+    PP:      Rounded run time per iteration: 6.1437e-01 +/- 3.4e-04 (0.1%)
 
 =item * No comparison against a string constant
 
