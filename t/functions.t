@@ -12,6 +12,7 @@ BEGIN {
         is_globref
         is_formatref
         is_ioref
+        is_refref
     >);
 }
 
@@ -26,5 +27,6 @@ ok( is_regexpref(qr//), 'is_regexpref' );
 ok( is_globref(\*STDIN), 'is_globref' );
 ok( is_formatref(*main::STDOUT{'FORMAT'}), 'is_formatref' );
 ok( is_ioref(*STDOUT{'IO'}), 'is_ioref' );
+ok( is_refref(\\1), 'is_refref' );
 
 done_testing;

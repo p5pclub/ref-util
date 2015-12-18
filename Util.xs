@@ -12,8 +12,13 @@
 # define USE_CUSTOM_OPS 0
 #endif
 
-#define CODE_SUB(ref, op, type) \
-    ( SvROK(ref) && SvTYPE(SvRV(ref)) op type )
+#define CODE_SUB(ref, op, type)       \
+    (                                 \
+        SvROK(ref) && (               \
+            SvTYPE(SvRV(ref)) op type \
+            || SvROK(SvRV(ref))       \
+        )                             \
+    )
 
 #define XSUB_BODY(ref, op, type) \
     CODE_SUB(ref, op, type)      \
@@ -74,6 +79,7 @@ DECL(is_regexpref, ==, SVt_REGEXP)
 DECL(is_globref,   ==, SVt_PVGV)
 DECL(is_formatref, ==, SVt_PVFM)
 DECL(is_ioref,     ==, SVt_PVIO)
+DECL(is_refref,    ==, -1)
 
 #endif /* USE_CUSTOM_OPS */
 
@@ -94,16 +100,16 @@ MODULE = Ref::Util		PACKAGE = Ref::Util
 
 
 BOOT:
-    /* FIXME: is_refref ? */
     {
         SET_OP( is_scalarref, "SCALAR" )
-        SET_OP( is_arrayref, "ARRAY" )
-        SET_OP( is_hashref, "HASH" )
-        SET_OP( is_coderef, "CODE" )
+        SET_OP( is_arrayref,  "ARRAY"  )
+        SET_OP( is_hashref,   "HASH"   )
+        SET_OP( is_coderef,   "CODE"   )
         SET_OP( is_regexpref, "REGEXP" )
-        SET_OP( is_globref, "GLOB" )
+        SET_OP( is_globref,   "GLOB"   )
         SET_OP( is_formatref, "FORMAT" )
-        SET_OP( is_ioref, "IO" )
+        SET_OP( is_ioref,     "IO"     )
+        SET_OP( is_refref,    "REF"    )
     }
 
 #else /* not USE_CUSTOM_OPS */
@@ -147,5 +153,19 @@ SV *
 is_ioref(SV *ref)
     PPCODE:
         XSUB_BODY( ref, ==, SVt_PVIO );
+
+SV *
+is_refref(SV *ref)
+    PPCODE:
+        /*
+            There's SVt_RV but it's aliased to SVt_IV,
+           so that would mean any check for reference
+           would also match any reference to an integer.
+           Instead we provide an integer which will explicitly NOT MATCH,
+           which will force the macro above to also check for reference
+           to reference.
+           If you find this awkward, Please teach me a better way. :)
+        */
+        XSUB_BODY( ref, ==, -1 );
 
 #endif /* not USE_CUSTOM_OPS */
