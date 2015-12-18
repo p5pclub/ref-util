@@ -1,7 +1,10 @@
 0.004
+        * Add is_refref() function!
         * Mention and compare to Scalar::Util::reftype.
         * Add benchmark results, including against reftype.
         * Add a note about the nature of playing with op trees, sort of.
+        * Add a note on what functions from reftype() are not available.
+        * Clarify how bad overloading is. No, it's not duck-typing either.
 
 0.003   2015-12-17
         * Clarify overloading approach. Sorry, everyone!
