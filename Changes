@@ -1,4 +1,4 @@
-0.004
+0.004   2015-12-18
         * Add is_refref() function!
         * Mention and compare to Scalar::Util::reftype.
         * Add benchmark results, including against reftype.
