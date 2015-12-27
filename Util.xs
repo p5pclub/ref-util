@@ -135,7 +135,43 @@ is_coderef(SV *ref)
 SV *
 is_regexpref(SV *ref)
     PPCODE:
+        /*
+           it's okay to do the #if checks here
+           (instead of the implementation above for both opcode and xsub)
+           because opcodes aren't supported in such old perls anyway
+        */
+/* 5.9.x and under */
+#if PERL_VERSION < 10
+    if ( !SvROK(ref) ) {
+        XSRETURN_NO;
+        return;
+    }
+
+    SV*  val  = SvRV(ref);
+    U32 type = SvTYPE(val); /* XXX: Data::Dumper uses U32, correct? */
+    char* refval;
+
+    if ( SvOBJECT(val) )
+        refval = HvNAME( SvSTASH(val) ); /* originally HvNAME_get */
+    else
+        refval = Nullch;
+
+    if (refval && *refval == 'R' && strEQ(refval, "Regexp"))
+        XSRETURN_YES;
+    else
+        XSRETURN_NO;
+#else
+    /* 5.11.x and under */
+    /* SvRXOK() introduced by AEvar in:
+       f7e711955148e1ce710988aa3010c41ca8085a03
+    */
+#   if PERL_VERSION < 12
+        SvRXOK(ref) ? XSRETURN_YES : XSRETURN_NO;
+#   else
+    /* 5.12.x and up, SVt_REGEXP available */
         XSUB_BODY( ref, ==, SVt_REGEXP );
+#   endif
+#endif
 
 SV *
 is_globref(SV *ref)
