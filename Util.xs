@@ -142,24 +142,24 @@ is_regexpref(SV *ref)
         */
 /* 5.9.x and under */
 #if PERL_VERSION < 10
-    if ( !SvROK(ref) ) {
-        XSRETURN_NO;
-        return;
-    }
+        if ( !SvROK(ref) ) {
+            XSRETURN_NO;
+            return;
+        }
 
-    SV*  val  = SvRV(ref);
-    U32 type = SvTYPE(val); /* XXX: Data::Dumper uses U32, correct? */
-    char* refval;
+        SV*  val  = SvRV(ref);
+        U32 type = SvTYPE(val); /* XXX: Data::Dumper uses U32, correct? */
+        char* refval;
 
-    if ( SvOBJECT(val) )
-        refval = HvNAME( SvSTASH(val) ); /* originally HvNAME_get */
-    else
-        refval = Nullch;
+        if ( SvOBJECT(val) )
+            refval = HvNAME( SvSTASH(val) ); /* originally HvNAME_get */
+        else
+            refval = Nullch;
 
-    if (refval && *refval == 'R' && strEQ(refval, "Regexp"))
-        XSRETURN_YES;
-    else
-        XSRETURN_NO;
+        if (refval && *refval == 'R' && strEQ(refval, "Regexp"))
+            XSRETURN_YES;
+        else
+            XSRETURN_NO;
 #else
     /* 5.11.x and under */
     /* SvRXOK() introduced by AEvar in:
