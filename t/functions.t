@@ -25,7 +25,11 @@ ok( is_hashref({}), 'is_hashref' );
 ok( is_coderef(sub {1}), 'is_coderef' );
 ok( is_regexpref(qr//), 'is_regexpref' );
 ok( is_globref(\*STDIN), 'is_globref' );
-ok( is_formatref(*main::STDOUT{'FORMAT'}), 'is_formatref' );
+
+if ( $^V and $^V gt v5.8.1 ) {
+    ok( is_formatref(*main::STDOUT{'FORMAT'}), 'is_formatref' );
+}
+
 ok( is_ioref(*STDOUT{'IO'}), 'is_ioref' );
 ok( is_refref(\\1), 'is_refref' );
 

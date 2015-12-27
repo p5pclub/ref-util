@@ -181,7 +181,11 @@ is_globref(SV *ref)
 SV *
 is_formatref(SV *ref)
     PPCODE:
+#if PERL_VERSION < 7
+        croak("is_formatref() isn't supported on Perl 5.6.x and under");
+#else
         XSUB_BODY( ref, ==, SVt_PVFM );
+#endif
 
 SV *
 is_ioref(SV *ref)
