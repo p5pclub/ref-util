@@ -30,7 +30,6 @@ ok( is_coderef(sub {1}), 'is_coderef' );
 ok( is_regexpref(qr//), 'is_regexpref' );
 ok( is_globref(\*STDIN), 'is_globref' );
 
-# FIXME: how do you create a FORMAT reference in 5.6.x?
 if ( $^V && $^V ge v5.8.0 ) {
 format STDOUT =
 .

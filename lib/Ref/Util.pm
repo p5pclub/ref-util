@@ -133,14 +133,29 @@ individually. This is the B<opposite> of duck-typing. Also, in
 duck-typing you can introspect to know what is available, and
 overloading does not lend to that.
 
-Overloading is cool, but terribly horrible. 'Nuff said.
+Overloading is I<cool, but terribly horrible>. 'Nuff said.
 
-=item * Possibly susceptible to change
+=item * Readonly, tied variables, and magic
 
-On a new enough Perl (2010+), it will use the op code implementation
-(see below), which, in case the op tree changes, it will have to be
-updated. That's not likely to happen but if any such changes arise,
-the code will be updated to fix it.
+Tied variables (used in L<Readonly>, for example) are currently not
+supported, because they work similar to overloading by hiding away
+the implementation from the variable.
+
+Consider the following:
+
+    use Data::Printer;
+    Readonly::Scalar my $rh2 => { a => { b => 2 } };
+    p $rh2->{a};
+
+    # result:
+    # "HASH(0x187dcc8)"
+
+This should print a hashref structure with key B<b> and value B<2>,
+but it doesn't. It prints a string. It should have retrieved the
+values but caused stringification instead.
+
+Support for magic is still undetermined and being discussed. If
+you're interested in this, please join the conversation on Github.
 
 =item * Ignores subtle types:
 
@@ -171,7 +186,7 @@ Support might be added, if a good reason arises.
 
 Additionally, two implementations are available, depending on the perl
 version you have. For perl that supports Custom OPs, we actually add
-an OP code (which is faster), and for perls that do not, we include
+an OP (which is faster), and for perls that do not, we include
 an implementation that just calls an XS function - which is still
 faster than the Pure-Perl equivalent.
 
@@ -240,6 +255,9 @@ Check for a format reference.
 
     # now we can test it
     is_formatref( *main::STDOUT{'FORMAT'} );
+
+This function is not available in Perl 5.6 and will trigger a
+C<croak()>.
 
 =head2 is_ioref($ref)
 
