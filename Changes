@@ -1,3 +1,7 @@
+0.006   2015-xx-xx
+        * Update changelog for 0.005 (5.10.1 tested successfully).
+        * Rephrase croak message for is_formatref on 5.6.
+
 0.005   2015-12-28
         * Support for 5.10. (Tested on 5.10.1)
         * Support for 5.8. (Tested on 5.8.9)
