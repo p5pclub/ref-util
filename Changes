@@ -1,5 +1,6 @@
-0.006   2015-xx-xx
+0.006   2016-01-01
         * Update changelog for 0.005 (5.10.1 tested successfully).
+        * Add license metadata. Thanks, Manwar!
         * Rephrase croak message for is_formatref on 5.6.
 
 0.005   2015-12-28
