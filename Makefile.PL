@@ -6,6 +6,7 @@ WriteMakefile(
     PREREQ_PM      => { 'Test::More' => 0, 'Exporter' => '5.57' },
     ABSTRACT_FROM  => 'lib/Ref/Util.pm',
     AUTHOR         => 'Sawyer X <xsawyerx@cpan.org>',
+    LICENSE        => 'mit',
     LIBS           => [''],
     DEFINE         => '',
     INC            => '-I.',
