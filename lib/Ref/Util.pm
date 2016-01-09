@@ -9,7 +9,7 @@ use Exporter 5.57 'import';
 our $VERSION     = '0.006';
 our %EXPORT_TAGS = ( 'all' => [qw<
     is_scalarref is_arrayref is_hashref is_coderef is_regexpref
-    is_globref is_formatref is_ioref is_refref
+    is_globref is_formatref is_ioref is_refref is_ref
 >] );
 our @EXPORT      = ();
 our @EXPORT_OK   = ( @{ $EXPORT_TAGS{'all'} } );

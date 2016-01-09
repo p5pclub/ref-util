@@ -79,6 +79,34 @@ DECL(is_formatref, ==, SVt_PVFM)
 DECL(is_ioref,     ==, SVt_PVIO)
 DECL(is_refref,    ==, -1)
 
+/* start is_ref */
+
+/* this is the equivalent of DECL_RUNTIME_FUNC */
+static void
+THX_xsfunc_is_ref (pTHX_ CV *cv)
+{
+    dSP;
+    SV *ref = POPs;
+    PUSHs( SvROK(ref) ? &PL_sv_yes : &PL_sv_no );
+}
+
+DECL_XOP(is_ref)
+
+/* this is the equivalent of DECL_MAIN_FUNC */
+
+static inline OP *
+is_ref_pp(pTHX)
+{
+    dSP;
+    SV *ref = POPs;
+    PUSHs( SvROK(ref) ? &PL_sv_yes : &PL_sv_no );
+    return NORMAL;
+}
+
+DECL_CALL_CHK_FUNC(is_ref)
+
+/* end is_ref */
+
 #endif /* USE_CUSTOM_OPS */
 
 MODULE = Ref::Util		PACKAGE = Ref::Util
@@ -99,6 +127,7 @@ MODULE = Ref::Util		PACKAGE = Ref::Util
 
 BOOT:
     {
+        SET_OP( is_ref, "" )
         SET_OP( is_scalarref, "SCALAR" )
         SET_OP( is_arrayref,  "ARRAY"  )
         SET_OP( is_hashref,   "HASH"   )
@@ -111,6 +140,11 @@ BOOT:
     }
 
 #else /* not USE_CUSTOM_OPS */
+
+SV *
+is_ref(SV *ref)
+    PPCODE:
+        SvROK(ref) ? XSRETURN_YES : XSRETURN_NO;
 
 SV *
 is_scalarref(SV *ref)
