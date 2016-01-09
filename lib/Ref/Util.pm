@@ -137,13 +137,13 @@ Overloading is I<cool, but terribly horrible>. 'Nuff said.
 
 =item * Readonly, tied variables, and magic
 
-Tied variables (used in L<Readonly>, for example) are currently not
-supported, because they work similar to overloading by hiding away
-the implementation from the variable.
+Tied variables (used in L<Readonly>, for example) are not supported,
+as they are not references, but regular variables with added magic.
 
 Consider the following:
 
     use Data::Printer;
+    use Readonly;
     Readonly::Scalar my $rh2 => { a => { b => 2 } };
     p $rh2->{a};
 
@@ -154,8 +154,8 @@ This should print a hashref structure with key B<b> and value B<2>,
 but it doesn't. It prints a string. It should have retrieved the
 values but caused stringification instead.
 
-Support for magic is still undetermined and being discussed. If
-you're interested in this, please join the conversation on Github.
+The problem here is that C<< $rh2->{a} >> is not a hashref, but a
+C<PVLV> with magic, so C<is_hashref> will correctly not detect it.
 
 =item * Ignores subtle types:
 
