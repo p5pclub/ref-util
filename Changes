@@ -1,6 +1,7 @@
 0.007   2016-01-09
         * Add is_ref(), asked by Ilmari (GH #6).
           (Tested on 5.18.2, 5.10.1, 5.8.9, 5.6.2)
+        * Clarify tied variables support (or lack thereof).
 
 0.006   2016-01-01
         * Update changelog for 0.005 (5.10.1 tested successfully).
