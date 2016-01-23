@@ -1,3 +1,6 @@
+0.008   2016-01-23
+        * Document is_ref() in the POD (GH #8).
+
 0.007   2016-01-09
         * Add is_ref(), asked by Ilmari (GH #6).
           (Tested on 5.18.2, 5.10.1, 5.8.9, 5.6.2)
