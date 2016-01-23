@@ -207,6 +207,12 @@ Nothing is exported by default. You can ask for specific subroutines
 
 =head1 SUBROUTINES
 
+=head2 is_ref($ref)
+
+Check for a reference to anything.
+
+    is_ref([]);
+
 =head2 is_scalarref($ref)
 
 Check for a scalar reference.
