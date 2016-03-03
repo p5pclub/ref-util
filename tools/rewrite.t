@@ -3,6 +3,7 @@ use warnings;
 use Test::More;
 
 BEGIN {
+    # this is actually enabled, but if merged into t/ it should be disabled
     plan skip_all => 'Rewrite tests is disabled by default' unless 1;
     plan tests => 2 + 7;
 
