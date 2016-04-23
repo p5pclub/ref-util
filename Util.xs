@@ -77,7 +77,7 @@ DECL(is_regexpref, ==, SVt_REGEXP)
 DECL(is_globref,   ==, SVt_PVGV)
 DECL(is_formatref, ==, SVt_PVFM)
 DECL(is_ioref,     ==, SVt_PVIO)
-DECL(is_refref,    ==, -1)
+DECL(is_refref,    ==, SVt_LAST+1) /* cannot match a real svtype value */
 
 /* start is_ref */
 
@@ -238,6 +238,6 @@ is_refref(SV *ref)
            to reference.
            If you find this awkward, Please teach me a better way. :)
         */
-        XSUB_BODY( ref, ==, -1 );
+        XSUB_BODY( ref, ==, SVt_LAST+1 );
 
 #endif /* not USE_CUSTOM_OPS */
