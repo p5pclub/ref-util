@@ -10,44 +10,44 @@
 # define USE_CUSTOM_OPS 0
 #endif
 
-#define CODE_SUB(ref, op, type)       \
-    (                                 \
-        SvROK(ref) && (               \
-            SvTYPE(SvRV(ref)) op type \
-            || SvROK(SvRV(ref))       \
-        )                             \
-    )
+#define CODE_SUB(ref, op, objcond, type)        \
+    (                                           \
+        SvROK(ref) && objcond && (              \
+            SvTYPE(SvRV(ref)) op type           \
+            || SvROK(SvRV(ref))                 \
+            )                                   \
+        )
 
-#define XSUB_BODY(ref, op, type) \
-    CODE_SUB(ref, op, type)      \
+#define XSUB_BODY(ref, op, objcond, type)       \
+    CODE_SUB(ref, op, objcond, type)            \
     ? XSRETURN_YES : XSRETURN_NO
 
-#define FUNC_BODY(op, type)      \
-    dSP;                         \
-    SV *ref = POPs;              \
-    PUSHs(                       \
-        CODE_SUB(ref, op, type)  \
-        ? &PL_sv_yes : &PL_sv_no \
-    )
+#define FUNC_BODY(op, objcond, type)            \
+    dSP;                                        \
+    SV *ref = POPs;                             \
+    PUSHs(                                      \
+        CODE_SUB(ref, op, objcond, type)         \
+        ? &PL_sv_yes : &PL_sv_no                \
+        )
 
 #if USE_CUSTOM_OPS
 
-#define DECL_RUNTIME_FUNC(x, op, type) \
-    static void                        \
-    THX_xsfunc_ ## x (pTHX_ CV *cv)    \
-    {                                  \
-        FUNC_BODY(op, type);           \
+#define DECL_RUNTIME_FUNC(x, op, objcond, type) \
+    static void                                 \
+    THX_xsfunc_ ## x (pTHX_ CV *cv)             \
+    {                                           \
+        FUNC_BODY(op, objcond, type);           \
     }
 
 #define DECL_XOP(x) \
     static XOP x ## _xop;
 
-#define DECL_MAIN_FUNC(x,op,type) \
-    static inline OP *            \
-    x ## _pp(pTHX)                \
-    {                             \
-        FUNC_BODY(op, type);      \
-        return NORMAL;            \
+#define DECL_MAIN_FUNC(x,op,objcond,type)       \
+    static inline OP *                          \
+    x ## _pp(pTHX)                              \
+    {                                           \
+        FUNC_BODY(op, objcond, type);           \
+        return NORMAL;                          \
     }
 
 #define DECL_CALL_CHK_FUNC(x)                                                       \
@@ -63,21 +63,21 @@
         return newop;                                                               \
     }
 
-#define DECL(x,op,type)            \
-    DECL_RUNTIME_FUNC(x, op, type) \
-    DECL_XOP(x)                    \
-    DECL_MAIN_FUNC(x,op,type)      \
+#define DECL(x,op,objcond,type)                 \
+    DECL_RUNTIME_FUNC(x, op, objcond, type)     \
+    DECL_XOP(x)                                 \
+    DECL_MAIN_FUNC(x,op,objcond,type)           \
     DECL_CALL_CHK_FUNC(x)
 
-DECL(is_scalarref, <,  SVt_PVAV)
-DECL(is_arrayref,  ==, SVt_PVAV)
-DECL(is_hashref,   ==, SVt_PVHV)
-DECL(is_coderef,   ==, SVt_PVCV)
-DECL(is_regexpref, ==, SVt_REGEXP)
-DECL(is_globref,   ==, SVt_PVGV)
-DECL(is_formatref, ==, SVt_PVFM)
-DECL(is_ioref,     ==, SVt_PVIO)
-DECL(is_refref,    ==, SVt_LAST+1) /* cannot match a real svtype value */
+DECL(is_scalarref, <,  1, SVt_PVAV)
+DECL(is_arrayref,  ==, 1, SVt_PVAV)
+DECL(is_hashref,   ==, 1, SVt_PVHV)
+DECL(is_coderef,   ==, 1, SVt_PVCV)
+DECL(is_regexpref, ==, 1, SVt_REGEXP)
+DECL(is_globref,   ==, 1, SVt_PVGV)
+DECL(is_formatref, ==, 1, SVt_PVFM)
+DECL(is_ioref,     ==, 1, SVt_PVIO)
+DECL(is_refref,    ==, 1, SVt_LAST+1) /* cannot match a real svtype value */
 
 /* start is_ref */
 
@@ -149,22 +149,22 @@ is_ref(SV *ref)
 SV *
 is_scalarref(SV *ref)
     PPCODE:
-        XSUB_BODY( ref, <, SVt_PVAV );
+        XSUB_BODY( ref, <, 1, SVt_PVAV );
 
 SV *
 is_arrayref(SV *ref)
     PPCODE:
-        XSUB_BODY( ref, ==, SVt_PVAV );
+        XSUB_BODY( ref, ==, 1, SVt_PVAV );
 
 SV *
 is_hashref(SV *ref)
     PPCODE:
-        XSUB_BODY( ref, ==, SVt_PVHV );
+        XSUB_BODY( ref, ==, 1, SVt_PVHV );
 
 SV *
 is_coderef(SV *ref)
     PPCODE:
-        XSUB_BODY( ref, ==, SVt_PVCV );
+        XSUB_BODY( ref, ==, 1, SVt_PVCV );
 
 SV *
 is_regexpref(SV *ref)
@@ -203,14 +203,14 @@ is_regexpref(SV *ref)
         SvRXOK(ref) ? XSRETURN_YES : XSRETURN_NO;
 #   else
     /* 5.12.x and up, SVt_REGEXP available */
-        XSUB_BODY( ref, ==, SVt_REGEXP );
+        XSUB_BODY( ref, ==, 1, SVt_REGEXP );
 #   endif
 #endif
 
 SV *
 is_globref(SV *ref)
     PPCODE:
-        XSUB_BODY( ref, ==, SVt_PVGV );
+        XSUB_BODY( ref, ==, 1, SVt_PVGV );
 
 SV *
 is_formatref(SV *ref)
@@ -218,13 +218,13 @@ is_formatref(SV *ref)
 #if PERL_VERSION < 7
         croak("is_formatref() isn't available on Perl 5.6.x and under");
 #else
-        XSUB_BODY( ref, ==, SVt_PVFM );
+        XSUB_BODY( ref, ==, 1, SVt_PVFM );
 #endif
 
 SV *
 is_ioref(SV *ref)
     PPCODE:
-        XSUB_BODY( ref, ==, SVt_PVIO );
+        XSUB_BODY( ref, ==, 1, SVt_PVIO );
 
 SV *
 is_refref(SV *ref)
@@ -238,6 +238,6 @@ is_refref(SV *ref)
            to reference.
            If you find this awkward, Please teach me a better way. :)
         */
-        XSUB_BODY( ref, ==, SVt_LAST+1 );
+        XSUB_BODY( ref, ==, 1, SVt_LAST+1 );
 
 #endif /* not USE_CUSTOM_OPS */
