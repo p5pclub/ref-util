@@ -79,6 +79,12 @@ DECL(is_formatref, ==, 1, SVt_PVFM)
 DECL(is_ioref,     ==, 1, SVt_PVIO)
 DECL(is_refref,    ==, 1, SVt_LAST+1) /* cannot match a real svtype value */
 
+DECL(is_plain_scalarref, <,  !sv_isobject(ref), SVt_PVAV)
+DECL(is_plain_arrayref,  ==, !sv_isobject(ref), SVt_PVAV)
+DECL(is_plain_hashref,   ==, !sv_isobject(ref), SVt_PVHV)
+DECL(is_plain_coderef,   ==, !sv_isobject(ref), SVt_PVCV)
+DECL(is_plain_globref,   ==, !sv_isobject(ref), SVt_PVGV)
+
 /* start is_ref */
 
 /* this is the equivalent of DECL_RUNTIME_FUNC */
@@ -137,6 +143,11 @@ BOOT:
         SET_OP( is_formatref, "FORMAT" )
         SET_OP( is_ioref,     "IO"     )
         SET_OP( is_refref,    "REF"    )
+        SET_OP( is_plain_scalarref, "plain SCALAR" )
+        SET_OP( is_plain_arrayref,  "plain ARRAY"  )
+        SET_OP( is_plain_hashref,   "plain HASH"   )
+        SET_OP( is_plain_coderef,   "plain CODE"   )
+        SET_OP( is_plain_globref,   "plain GLOB"   )
     }
 
 #else /* not USE_CUSTOM_OPS */
@@ -239,5 +250,30 @@ is_refref(SV *ref)
            If you find this awkward, Please teach me a better way. :)
         */
         XSUB_BODY( ref, ==, 1, SVt_LAST+1 );
+
+SV *
+is_plain_scalarref(SV *ref)
+    PPCODE:
+        XSUB_BODY( ref, <, !sv_isobject(ref), SVt_PVAV );
+
+SV *
+is_plain_arrayref(SV *ref)
+    PPCODE:
+        XSUB_BODY( ref, ==, !sv_isobject(ref), SVt_PVAV );
+
+SV *
+is_plain_hashref(SV *ref)
+    PPCODE:
+        XSUB_BODY( ref, ==, !sv_isobject(ref), SVt_PVHV );
+
+SV *
+is_plain_coderef(SV *ref)
+    PPCODE:
+        XSUB_BODY( ref, ==, !sv_isobject(ref), SVt_PVCV );
+
+SV *
+is_plain_globref(SV *ref)
+    PPCODE:
+        XSUB_BODY( ref, ==, !sv_isobject(ref), SVt_PVGV );
 
 #endif /* not USE_CUSTOM_OPS */
