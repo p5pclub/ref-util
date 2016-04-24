@@ -210,12 +210,7 @@ is_regexpref(SV *ref)
     /* SvRXOK() introduced by AEvar in:
        f7e711955148e1ce710988aa3010c41ca8085a03
     */
-#   if PERL_VERSION < 12
-        SvRXOK(ref) ? XSRETURN_YES : XSRETURN_NO;
-#   else
-    /* 5.12.x and up, SVt_REGEXP available */
-        XSUB_BODY( ref, ==, 1, SVt_REGEXP );
-#   endif
+    SvRXOK(ref) ? XSRETURN_YES : XSRETURN_NO;
 #endif
 
 SV *
