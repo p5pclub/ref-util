@@ -26,9 +26,9 @@
     dSP;                                        \
     SV *ref = POPs;                             \
     PUSHs(                                      \
-        CODE_SUB(ref, op, objcond, type)         \
+        CODE_SUB(ref, op, objcond, type)        \
         ? &PL_sv_yes : &PL_sv_no                \
-        )
+    )
 
 #if USE_CUSTOM_OPS
 
@@ -73,11 +73,44 @@ DECL(is_scalarref, <,  1, SVt_PVAV)
 DECL(is_arrayref,  ==, 1, SVt_PVAV)
 DECL(is_hashref,   ==, 1, SVt_PVHV)
 DECL(is_coderef,   ==, 1, SVt_PVCV)
-DECL(is_regexpref, ==, 1, SVt_REGEXP)
 DECL(is_globref,   ==, 1, SVt_PVGV)
 DECL(is_formatref, ==, 1, SVt_PVFM)
 DECL(is_ioref,     ==, 1, SVt_PVIO)
 DECL(is_refref,    ==, 1, SVt_LAST+1) /* cannot match a real svtype value */
+
+#define FUNC_BODY_REGEXP()       \
+    dSP;                         \
+    SV *ref = POPs;              \
+    PUSHs(                       \
+        SvRXOK(ref)              \
+        ? &PL_sv_yes : &PL_sv_no \
+    )
+
+/*
+    is_regexpref is a special case in which we shouldn't use the
+    type (SVt_REGEXP) because there's a special macro for it.
+
+    Previously:
+    DECL(is_regexpref, ==, 1, SVt_REGEXP)
+
+    And we're rewriting the following specific macro:
+    DECL_RUNTIME_FUNC(x, op, objcond, type)
+*/
+static void
+THX_xsfunc_is_regexpref (pTHX_ CV *cv)
+{
+    FUNC_BODY_REGEXP();
+}
+
+static inline OP *
+is_regexpref_pp(pTHX)
+{
+    FUNC_BODY_REGEXP();
+    return NORMAL;
+}
+
+DECL_XOP(is_regexpref)
+DECL_CALL_CHK_FUNC(is_regexpref)
 
 DECL(is_plain_scalarref, <,  !sv_isobject(ref), SVt_PVAV)
 DECL(is_plain_arrayref,  ==, !sv_isobject(ref), SVt_PVAV)
