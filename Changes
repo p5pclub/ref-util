@@ -1,3 +1,8 @@
+0.009
+        * Add a bunch of plain references functions to support
+          explicitly non-blessed variations of the functions.
+          (Aaron Crane)
+
 0.008   2016-01-23
         * Document is_ref() in the POD (GH #8).
 
