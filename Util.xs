@@ -206,7 +206,7 @@ is_regexpref(SV *ref)
         else
             XSRETURN_NO;
 #else
-    /* 5.11.x and under */
+    /* 5.10.x and above */
     /* SvRXOK() introduced by AEvar in:
        f7e711955148e1ce710988aa3010c41ca8085a03
     */
