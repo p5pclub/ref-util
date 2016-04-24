@@ -5,7 +5,7 @@ use Test::More;
 BEGIN {
     # 5.8.0+ gets 1 extra test for FORMAT reference
     # (see comment below)
-    plan tests => 27 +
+    plan tests => 28 +
         ( ( $^V && $^V ge v5.8.0 ) ? 2 : 0 );
 
     use_ok('Ref::Util');
@@ -44,6 +44,8 @@ ok( is_hashref({}), 'is_hashref' );
 ok( is_coderef(sub {1}), 'is_coderef' );
 ok( is_regexpref(qr//), 'is_regexpref' );
 ok( is_globref(\*STDIN), 'is_globref' );
+
+ok( is_regexpref(bless qr/^/, 'Foo'), 'is_regexpref (randomly blessed)' );
 
 ok( is_plain_scalarref(\1), 'is_plain_scalarref' );
 ok( is_plain_arrayref([]), 'is_plain_arrayref' );
