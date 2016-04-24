@@ -46,6 +46,8 @@ ok( is_regexpref(qr//), 'is_regexpref' );
 ok( is_regexpref(bless qr//, 'Foo'), 'is_regexpref on blessed' );
 ok( is_globref(\*STDIN), 'is_globref' );
 
+ok( is_regexpref(bless qr/^/, 'Foo'), 'is_regexpref (randomly blessed)' );
+
 ok( is_plain_scalarref(\1), 'is_plain_scalarref' );
 ok( is_plain_arrayref([]), 'is_plain_arrayref' );
 ok( is_plain_hashref({}), 'is_plain_hashref' );
