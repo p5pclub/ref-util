@@ -10,6 +10,11 @@ our $VERSION     = '0.008';
 our %EXPORT_TAGS = ( 'all' => [qw<
     is_scalarref is_arrayref is_hashref is_coderef is_regexpref
     is_globref is_formatref is_ioref is_refref is_ref
+    is_plain_scalarref
+    is_plain_arrayref
+    is_plain_hashref
+    is_plain_coderef
+    is_plain_globref
 >] );
 our @EXPORT      = ();
 our @EXPORT_OK   = ( @{ $EXPORT_TAGS{'all'} } );
@@ -110,6 +115,13 @@ so even if it's blessed, you know what type of variable is blessed.
     use Ref::Util 'is_hashref';
     my $foo = bless {}, 'PKG';
     is_hashref($foo); # works
+
+On the other hand, in some situations it might be better to specifically
+exclude blessed references. The rationale for that might be that merely
+because some object happens to be implemented using a hash doesn't mean it's
+necessarily correct to treat it as a hash. For these situations, you can use
+C<is_plain_hashref> and friends, which have the same performance benefits as
+C<is_hashref>.
 
 =item * Ignores overloading
 
@@ -276,6 +288,38 @@ Check for an IO reference.
 Check for a reference to a reference.
 
     is_refref( \[] ); # reference to array reference
+
+=head2 is_plain_scalarref($ref)
+
+Check for an unblessed scalar reference.
+
+    is_plain_scalarref(\"hello");
+    is_plain_scalarref(\30);
+    is_plain_scalarref(\$value);
+
+=head2 is_plain_arrayref($ref)
+
+Check for an unblessed array reference.
+
+    is_plain_arrayref([]);
+
+=head2 is_plain_hashref($ref)
+
+Check for an unblessed hash reference.
+
+    is_plain_hashref({});
+
+=head2 is_plain_coderef($ref)
+
+Check for an unblessed code reference.
+
+    is_plain_coderef( sub {} );
+
+=head2 is_plain_globref($ref)
+
+Check for an unblessed glob reference.
+
+    is_plain_globref( \*STDIN );
 
 =head1 SEE ALSO
 
