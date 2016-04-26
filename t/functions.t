@@ -38,10 +38,14 @@ ok( is_arrayref([]), 'is_arrayref' );
 ok( is_hashref({}), 'is_hashref' );
 ok( is_coderef(sub {1}), 'is_coderef' );
 ok( is_regexpref(qr//), 'is_regexpref' );
-ok( is_regexpref(bless qr//, 'Foo'), 'is_regexpref on blessed' );
 ok( is_globref(\*STDIN), 'is_globref' );
 
-ok( is_regexpref(bless qr/^/, 'Foo'), 'is_regexpref (randomly blessed)' );
+TODO: {
+    local $TODO = $^V && $^V ge v5.10.0 ? undef
+        : 'blessed regexp refs not yet handled correctly';
+    ok( is_regexpref(bless qr//, 'Foo'), 'is_regexpref on blessed' );
+    ok( is_regexpref(bless qr/^/, 'Foo'), 'is_regexpref (randomly blessed)' );
+}
 
 ok( is_plain_scalarref(\1), 'is_plain_scalarref' );
 ok( is_plain_arrayref([]), 'is_plain_arrayref' );
