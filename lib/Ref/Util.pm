@@ -10,11 +10,14 @@ our $VERSION     = '0.008';
 our %EXPORT_TAGS = ( 'all' => [qw<
     is_scalarref is_arrayref is_hashref is_coderef is_regexpref
     is_globref is_formatref is_ioref is_refref is_ref
+    is_plain_ref
     is_plain_scalarref
     is_plain_arrayref
     is_plain_hashref
     is_plain_coderef
     is_plain_globref
+    is_plain_formatref
+    is_plain_refref
 >] );
 our @EXPORT      = ();
 our @EXPORT_OK   = ( @{ $EXPORT_TAGS{'all'} } );
@@ -297,6 +300,12 @@ Check for an unblessed scalar reference.
     is_plain_scalarref(\30);
     is_plain_scalarref(\$value);
 
+=head2 is_plain_ref($ref)
+
+Check for an unblessed reference to anything.
+
+    is_plain_ref([]);
+
 =head2 is_plain_arrayref($ref)
 
 Check for an unblessed array reference.
@@ -320,6 +329,23 @@ Check for an unblessed code reference.
 Check for an unblessed glob reference.
 
     is_plain_globref( \*STDIN );
+
+=head2 is_plain_formatref($ref)
+
+Check for an unblessed format reference.
+
+    # set up format in STDOUT
+    format STDOUT =
+    .
+
+    # now we can test it
+    is_plain_formatref(bless *main::STDOUT{'FORMAT'} );
+
+=head2 is_plain_refref($ref)
+
+Check for an unblessed reference to a reference.
+
+    is_plain_refref( \[] ); # reference to array reference
 
 =head1 SEE ALSO
 

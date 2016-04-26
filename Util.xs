@@ -122,6 +122,8 @@ DECL(is_plain_arrayref,  ==, !sv_isobject(ref), SVt_PVAV)
 DECL(is_plain_hashref,   ==, !sv_isobject(ref), SVt_PVHV)
 DECL(is_plain_coderef,   ==, !sv_isobject(ref), SVt_PVCV)
 DECL(is_plain_globref,   ==, !sv_isobject(ref), SVt_PVGV)
+DECL(is_plain_formatref, ==, !sv_isobject(ref), SVt_PVFM)
+DECL(is_plain_refref,    ==, !sv_isobject(ref), SVt_LAST+1)
 
 /* start is_ref */
 
@@ -150,6 +152,34 @@ is_ref_pp(pTHX)
 DECL_CALL_CHK_FUNC(is_ref)
 
 /* end is_ref */
+
+/* start is_plain_ref */
+
+/* this is the equivalent of DECL_RUNTIME_FUNC */
+static void
+THX_xsfunc_is_plain_ref (pTHX_ CV *cv)
+{
+    dSP;
+    SV *ref = POPs;
+    PUSHs( SvROK(ref) && !sv_isobject(ref) ? &PL_sv_yes : &PL_sv_no );
+}
+
+DECL_XOP(is_plain_ref)
+
+/* this is the equivalent of DECL_MAIN_FUNC */
+
+static inline OP *
+is_plain_ref_pp(pTHX)
+{
+    dSP;
+    SV *ref = POPs;
+    PUSHs( SvROK(ref) && !sv_isobject(ref) ? &PL_sv_yes : &PL_sv_no );
+    return NORMAL;
+}
+
+DECL_CALL_CHK_FUNC(is_plain_ref)
+
+/* end is_plain_ref */
 
 #endif /* USE_CUSTOM_OPS */
 
@@ -181,11 +211,14 @@ BOOT:
         SET_OP( is_formatref, "FORMAT" )
         SET_OP( is_ioref,     "IO"     )
         SET_OP( is_refref,    "REF"    )
+        SET_OP( is_plain_ref, "plain" )
         SET_OP( is_plain_scalarref, "plain SCALAR" )
         SET_OP( is_plain_arrayref,  "plain ARRAY"  )
         SET_OP( is_plain_hashref,   "plain HASH"   )
         SET_OP( is_plain_coderef,   "plain CODE"   )
         SET_OP( is_plain_globref,   "plain GLOB"   )
+        SET_OP( is_plain_formatref,   "plain FORMAT"   )
+        SET_OP( is_plain_refref,   "plain REF"   )
     }
 
 #else /* not USE_CUSTOM_OPS */
@@ -285,6 +318,11 @@ is_refref(SV *ref)
         XSUB_BODY( ref, ==, 1, SVt_LAST+1 );
 
 SV *
+is_plain_ref(SV *ref)
+    PPCODE:
+        SvROK(ref) && !sv_isobject(ref) ? XSRETURN_YES : XSRETURN_NO;
+
+SV *
 is_plain_scalarref(SV *ref)
     PPCODE:
         XSUB_BODY( ref, <, !sv_isobject(ref), SVt_PVAV );
@@ -308,5 +346,19 @@ SV *
 is_plain_globref(SV *ref)
     PPCODE:
         XSUB_BODY( ref, ==, !sv_isobject(ref), SVt_PVGV );
+
+SV *
+is_plain_formatref(SV *ref)
+    PPCODE:
+#if PERL_VERSION < 7
+        croak("is_plain_formatref() isn't available on Perl 5.6.x and under");
+#else
+        XSUB_BODY( ref, ==, !sv_isobject(ref), SVt_PVFM );
+#endif
+
+SV *
+is_plain_refref(SV *ref)
+    PPCODE:
+        XSUB_BODY( ref, ==, !sv_isobject(ref), SVt_LAST+1 );
 
 #endif /* not USE_CUSTOM_OPS */
