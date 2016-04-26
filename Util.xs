@@ -4,54 +4,43 @@
 #include "XSUB.h"
 #include "ppport.h"
 
-/* This should perhaps be moved to Devel::PPPort */
-#if PERL_API_SUBVERSION < 10
-#define SVt_LAST 16
-#endif
-
 #if defined(cv_set_call_checker) && defined(XopENTRY_set)
 # define USE_CUSTOM_OPS 1
 #else
 # define USE_CUSTOM_OPS 0
 #endif
 
-#define CODE_SUB(ref, op, objcond, type)        \
-    (                                           \
-        SvROK(ref) && objcond && (              \
-            SvTYPE(SvRV(ref)) op type           \
-            || SvROK(SvRV(ref))                 \
-            )                                   \
-        )
+/* Boolean expression that considers an SV* named "ref" */
+#define COND(expr) (SvROK(ref) && expr)
 
-#define XSUB_BODY(ref, op, objcond, type)       \
-    CODE_SUB(ref, op, objcond, type)            \
-    ? XSRETURN_YES : XSRETURN_NO
+#define PLAIN         (!sv_isobject(ref))
+#define REFTYPE(tail) (SvTYPE(SvRV(ref)) tail)
+#define REFREF        (SvROK( SvRV(ref) ))
 
-#define FUNC_BODY(op, objcond, type)            \
-    dSP;                                        \
-    SV *ref = POPs;                             \
-    PUSHs(                                      \
-        CODE_SUB(ref, op, objcond, type)        \
-        ? &PL_sv_yes : &PL_sv_no                \
-    )
+#define XSUB_BODY(cond) COND(cond) ? XSRETURN_YES : XSRETURN_NO
+
+#define FUNC_BODY(cond)                                 \
+    dSP;                                                \
+    SV *ref = POPs;                                     \
+    PUSHs( COND(cond) ? &PL_sv_yes : &PL_sv_no )
 
 #if USE_CUSTOM_OPS
 
-#define DECL_RUNTIME_FUNC(x, op, objcond, type) \
+#define DECL_RUNTIME_FUNC(x, cond)              \
     static void                                 \
     THX_xsfunc_ ## x (pTHX_ CV *cv)             \
     {                                           \
-        FUNC_BODY(op, objcond, type);           \
+        FUNC_BODY(cond);                        \
     }
 
 #define DECL_XOP(x) \
     static XOP x ## _xop;
 
-#define DECL_MAIN_FUNC(x,op,objcond,type)       \
+#define DECL_MAIN_FUNC(x, cond)                 \
     static inline OP *                          \
     x ## _pp(pTHX)                              \
     {                                           \
-        FUNC_BODY(op, objcond, type);           \
+        FUNC_BODY(cond);                        \
         return NORMAL;                          \
     }
 
@@ -68,20 +57,31 @@
         return newop;                                                               \
     }
 
-#define DECL(x,op,objcond,type)                 \
-    DECL_RUNTIME_FUNC(x, op, objcond, type)     \
+#define DECL(x, cond)                           \
+    DECL_RUNTIME_FUNC(x, cond)                  \
     DECL_XOP(x)                                 \
-    DECL_MAIN_FUNC(x,op,objcond,type)           \
+    DECL_MAIN_FUNC(x, cond)                     \
     DECL_CALL_CHK_FUNC(x)
 
-DECL(is_scalarref, <,  !SvROK( SvRV(ref) ), SVt_PVAV)
-DECL(is_arrayref,  ==, 1, SVt_PVAV)
-DECL(is_hashref,   ==, 1, SVt_PVHV)
-DECL(is_coderef,   ==, 1, SVt_PVCV)
-DECL(is_globref,   ==, 1, SVt_PVGV)
-DECL(is_formatref, ==, 1, SVt_PVFM)
-DECL(is_ioref,     ==, 1, SVt_PVIO)
-DECL(is_refref,    ==, 1, SVt_LAST+1) /* cannot match a real svtype value */
+DECL(is_ref,             1)
+DECL(is_scalarref,       REFTYPE(<  SVt_PVAV) && !REFREF)
+DECL(is_arrayref,        REFTYPE(== SVt_PVAV))
+DECL(is_hashref,         REFTYPE(== SVt_PVHV))
+DECL(is_coderef,         REFTYPE(== SVt_PVCV))
+DECL(is_globref,         REFTYPE(== SVt_PVGV))
+DECL(is_formatref,       REFTYPE(== SVt_PVFM))
+DECL(is_ioref,           REFTYPE(== SVt_PVIO))
+DECL(is_refref,          REFREF)
+
+DECL(is_plain_ref,       PLAIN)
+DECL(is_plain_scalarref, REFTYPE(<  SVt_PVAV) && !REFREF && PLAIN)
+DECL(is_plain_arrayref,  REFTYPE(== SVt_PVAV) && PLAIN)
+DECL(is_plain_hashref,   REFTYPE(== SVt_PVHV) && PLAIN)
+DECL(is_plain_coderef,   REFTYPE(== SVt_PVCV) && PLAIN)
+DECL(is_plain_globref,   REFTYPE(== SVt_PVGV) && PLAIN)
+DECL(is_plain_formatref, REFTYPE(== SVt_PVFM) && PLAIN)
+DECL(is_plain_ioref,     REFTYPE(== SVt_PVIO) && PLAIN)
+DECL(is_plain_refref,    REFREF && PLAIN)
 
 #define FUNC_BODY_REGEXP()       \
     dSP;                         \
@@ -96,10 +96,16 @@ DECL(is_refref,    ==, 1, SVt_LAST+1) /* cannot match a real svtype value */
     type (SVt_REGEXP) because there's a special macro for it.
 
     Previously:
-    DECL(is_regexpref, ==, 1, SVt_REGEXP)
+    DECL(is_regexpref, SvTYPE(ref) == SVt_REGEXP, 1)
 
     And we're rewriting the following specific macro:
-    DECL_RUNTIME_FUNC(x, op, objcond, type)
+    DECL_RUNTIME_FUNC(x, cond)
+
+    Once Devel::PPPort provides a reimplementation of SvRXOK() for older
+    Perls, we can merely add this above:
+
+        DECL(is_regexpref, SvRXOK(ref))
+
 */
 static void
 THX_xsfunc_is_regexpref (pTHX_ CV *cv)
@@ -116,70 +122,6 @@ is_regexpref_pp(pTHX)
 
 DECL_XOP(is_regexpref)
 DECL_CALL_CHK_FUNC(is_regexpref)
-
-DECL(is_plain_scalarref, <,  !sv_isobject(ref) && !SvROK( SvRV(ref) ), SVt_PVAV)
-DECL(is_plain_arrayref,  ==, !sv_isobject(ref), SVt_PVAV)
-DECL(is_plain_hashref,   ==, !sv_isobject(ref), SVt_PVHV)
-DECL(is_plain_coderef,   ==, !sv_isobject(ref), SVt_PVCV)
-DECL(is_plain_globref,   ==, !sv_isobject(ref), SVt_PVGV)
-DECL(is_plain_formatref, ==, !sv_isobject(ref), SVt_PVFM)
-DECL(is_plain_refref,    ==, !sv_isobject(ref), SVt_LAST+1)
-
-/* start is_ref */
-
-/* this is the equivalent of DECL_RUNTIME_FUNC */
-static void
-THX_xsfunc_is_ref (pTHX_ CV *cv)
-{
-    dSP;
-    SV *ref = POPs;
-    PUSHs( SvROK(ref) ? &PL_sv_yes : &PL_sv_no );
-}
-
-DECL_XOP(is_ref)
-
-/* this is the equivalent of DECL_MAIN_FUNC */
-
-static inline OP *
-is_ref_pp(pTHX)
-{
-    dSP;
-    SV *ref = POPs;
-    PUSHs( SvROK(ref) ? &PL_sv_yes : &PL_sv_no );
-    return NORMAL;
-}
-
-DECL_CALL_CHK_FUNC(is_ref)
-
-/* end is_ref */
-
-/* start is_plain_ref */
-
-/* this is the equivalent of DECL_RUNTIME_FUNC */
-static void
-THX_xsfunc_is_plain_ref (pTHX_ CV *cv)
-{
-    dSP;
-    SV *ref = POPs;
-    PUSHs( SvROK(ref) && !sv_isobject(ref) ? &PL_sv_yes : &PL_sv_no );
-}
-
-DECL_XOP(is_plain_ref)
-
-/* this is the equivalent of DECL_MAIN_FUNC */
-
-static inline OP *
-is_plain_ref_pp(pTHX)
-{
-    dSP;
-    SV *ref = POPs;
-    PUSHs( SvROK(ref) && !sv_isobject(ref) ? &PL_sv_yes : &PL_sv_no );
-    return NORMAL;
-}
-
-DECL_CALL_CHK_FUNC(is_plain_ref)
-
-/* end is_plain_ref */
 
 #endif /* USE_CUSTOM_OPS */
 
@@ -226,27 +168,27 @@ BOOT:
 SV *
 is_ref(SV *ref)
     PPCODE:
-        SvROK(ref) ? XSRETURN_YES : XSRETURN_NO;
+        XSUB_BODY(1);
 
 SV *
 is_scalarref(SV *ref)
     PPCODE:
-        XSUB_BODY( ref, <, !SvROK( SvRV(ref) ), SVt_PVAV );
+        XSUB_BODY( REFTYPE(< SVt_PVAV) && !REFREF );
 
 SV *
 is_arrayref(SV *ref)
     PPCODE:
-        XSUB_BODY( ref, ==, 1, SVt_PVAV );
+        XSUB_BODY(REFTYPE(== SVt_PVAV));
 
 SV *
 is_hashref(SV *ref)
     PPCODE:
-        XSUB_BODY( ref, ==, 1, SVt_PVHV );
+        XSUB_BODY(REFTYPE(== SVt_PVHV));
 
 SV *
 is_coderef(SV *ref)
     PPCODE:
-        XSUB_BODY( ref, ==, 1, SVt_PVCV );
+        XSUB_BODY(REFTYPE(== SVt_PVCV));
 
 SV *
 is_regexpref(SV *ref)
@@ -287,7 +229,7 @@ is_regexpref(SV *ref)
 SV *
 is_globref(SV *ref)
     PPCODE:
-        XSUB_BODY( ref, ==, 1, SVt_PVGV );
+        XSUB_BODY(REFTYPE(== SVt_PVGV));
 
 SV *
 is_formatref(SV *ref)
@@ -295,57 +237,48 @@ is_formatref(SV *ref)
 #if PERL_VERSION < 7
         croak("is_formatref() isn't available on Perl 5.6.x and under");
 #else
-        XSUB_BODY( ref, ==, 1, SVt_PVFM );
+        XSUB_BODY(REFTYPE(== SVt_PVFM));
 #endif
 
 SV *
 is_ioref(SV *ref)
     PPCODE:
-        XSUB_BODY( ref, ==, 1, SVt_PVIO );
+        XSUB_BODY(REFTYPE(== SVt_PVIO));
 
 SV *
 is_refref(SV *ref)
     PPCODE:
-        /*
-           There's SVt_RV but it's aliased to SVt_IV,
-           so that would mean any check for reference
-           would also match any reference to an integer.
-           Instead we provide an integer which will explicitly NOT MATCH.
-           That will force the macro above to also check for reference
-           to reference.
-           If you find this awkward, Please teach me a better way. :)
-        */
-        XSUB_BODY( ref, ==, 1, SVt_LAST+1 );
+        XSUB_BODY(REFREF);
 
 SV *
 is_plain_ref(SV *ref)
     PPCODE:
-        SvROK(ref) && !sv_isobject(ref) ? XSRETURN_YES : XSRETURN_NO;
+        XSUB_BODY(PLAIN);
 
 SV *
 is_plain_scalarref(SV *ref)
     PPCODE:
-        XSUB_BODY( ref, <, !sv_isobject(ref) && !SvROK( SvRV(ref) ), SVt_PVAV );
+        XSUB_BODY(REFTYPE(< SVt_PVAV) && !REFREF && PLAIN);
 
 SV *
 is_plain_arrayref(SV *ref)
     PPCODE:
-        XSUB_BODY( ref, ==, !sv_isobject(ref), SVt_PVAV );
+        XSUB_BODY(REFTYPE(== SVt_PVAV) && PLAIN);
 
 SV *
 is_plain_hashref(SV *ref)
     PPCODE:
-        XSUB_BODY( ref, ==, !sv_isobject(ref), SVt_PVHV );
+        XSUB_BODY(REFTYPE(== SVt_PVHV) && PLAIN);
 
 SV *
 is_plain_coderef(SV *ref)
     PPCODE:
-        XSUB_BODY( ref, ==, !sv_isobject(ref), SVt_PVCV );
+        XSUB_BODY(REFTYPE(== SVt_PVCV) && PLAIN);
 
 SV *
 is_plain_globref(SV *ref)
     PPCODE:
-        XSUB_BODY( ref, ==, !sv_isobject(ref), SVt_PVGV );
+        XSUB_BODY(REFTYPE(== SVt_PVGV) && PLAIN);
 
 SV *
 is_plain_formatref(SV *ref)
@@ -353,12 +286,12 @@ is_plain_formatref(SV *ref)
 #if PERL_VERSION < 7
         croak("is_plain_formatref() isn't available on Perl 5.6.x and under");
 #else
-        XSUB_BODY( ref, ==, !sv_isobject(ref), SVt_PVFM );
+        XSUB_BODY(REFTYPE(== SVt_PVFM) && PLAIN);
 #endif
 
 SV *
 is_plain_refref(SV *ref)
     PPCODE:
-        XSUB_BODY( ref, ==, !sv_isobject(ref), SVt_LAST+1 );
+        XSUB_BODY(REFREF && PLAIN);
 
 #endif /* not USE_CUSTOM_OPS */

@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 52;
+use Test::More tests => 64;
 
 BEGIN {
     use_ok('Ref::Util');
@@ -78,11 +78,22 @@ ok( !is_plain_hashref(bless {}), 'is_plain_hashref (blessed)' );
 ok( !is_plain_coderef(bless sub {1}), 'is_plain_coderef (blessed)' );
 ok( !is_plain_globref(bless \*FOO), 'is_plain_globref (blessed)' );
 
-ok( !is_scalarref(\\1),       '!is_scalarref (refref)' );
+ok( !is_scalarref(\\1), '!is_scalarref (refref)' );
+ok( !is_arrayref(\\1),  '!is_arrayref (refref)' );
+ok( !is_hashref(\\1),   '!is_hashref (refref)' );
+ok( !is_coderef(\\1),   '!is_coderef (refref)' );
+ok( !is_regexpref(\\1), '!is_regexpref (refref)' );
+ok( !is_globref(\\1),   '!is_globref (refref)' );
+ok( !is_ioref(\\1),     '!is_ioref (refref)' );
+
 ok( !is_plain_scalarref(\\1), '!is_plain_scalarref (refref)' );
+ok( !is_plain_arrayref(\\1),  '!is_plain_arrayref (refref)' );
+ok( !is_plain_hashref(\\1),   '!is_plain_hashref (refref)' );
+ok( !is_plain_coderef(\\1),   '!is_plain_coderef (refref)' );
+ok( !is_plain_globref(\\1),   '!is_plain_globref (refref)' );
 
 SKIP: {
-    skip 'format references do not exist before Perl 5.8.0', 8
+    skip 'format references do not exist before Perl 5.8.0', 10
         if !$^V || $^V lt v5.8.0;
     format STDOUT =
 .
@@ -91,6 +102,8 @@ SKIP: {
     ok( is_ref($ref), 'is_ref (formatref)' );
     ok( is_plain_ref($ref), 'is_plain_ref (formatref)' );
     ok( is_plain_formatref($ref), 'is_plain_formatref' );
+    ok( !is_formatref(\\1),  '!is_formatref (refref)' );
+    ok( !is_plain_formatref(\\1), '!is_plain_formatref (refref)' );
 
     my $blessed = bless $ref, 'Surprise';
     ok( is_formatref($blessed), 'is_formatref (blessed)' );
