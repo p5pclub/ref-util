@@ -1,13 +1,8 @@
 use strict;
 use warnings;
-use Test::More;
+use Test::More tests => 31;
 
 BEGIN {
-    # 5.8.0+ gets 1 extra test for FORMAT reference
-    # (see comment below)
-    plan tests => 29 +
-        ( ( $^V && $^V ge v5.8.0 ) ? 2 : 0 );
-
     use_ok('Ref::Util');
 
     Ref::Util->import(qw<
@@ -60,8 +55,10 @@ ok( !is_plain_hashref(bless {}), 'is_plain_hashref (blessed)' );
 ok( !is_plain_coderef(bless sub {1}), 'is_plain_coderef (blessed)' );
 ok( !is_plain_globref(bless \*STDIN), 'is_plain_globref (blessed)' );
 
-if ( $^V && $^V ge v5.8.0 ) {
-format STDOUT =
+SKIP: {
+    skip 'format references do not exist before Perl 5.8.0', 2
+        if !$^V || $^V lt v5.8.0;
+    format STDOUT =
 .
     ok( is_formatref(*main::STDOUT{'FORMAT'}), 'is_formatref' );
     ok( is_ref(*main::STDOUT{'FORMAT'}), 'is_ref (formatref)' );
