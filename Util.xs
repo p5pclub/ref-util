@@ -4,6 +4,11 @@
 #include "XSUB.h"
 #include "ppport.h"
 
+/* This should perhaps be moved to Devel::PPPort */
+#if PERL_API_SUBVERSION < 10
+#define SVt_LAST 16
+#endif
+
 #if defined(cv_set_call_checker) && defined(XopENTRY_set)
 # define USE_CUSTOM_OPS 1
 #else
