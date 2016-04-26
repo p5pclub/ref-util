@@ -2,10 +2,9 @@
         * Add a bunch of plain references functions to support
           explicitly non-blessed variations of the functions.
           (Aaron Crane)
-        * Use SvRXOK() on Perl 5.12+ (both opcode and XS) because
-          it's more correct. It means regular expressions support
-          magic because it should be used for regexps. They're
-          special.
+        * Support blessed and magical regexes in 5.12+. From the
+          implementation perspective, we're now using SvRXOK() on
+          Perl 5.12+ (both opcode and XS) because it's more correct.
 
 0.008   2016-01-23
         * Document is_ref() in the POD (GH #8).
