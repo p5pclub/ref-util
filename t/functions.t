@@ -5,7 +5,7 @@ use Test::More;
 BEGIN {
     # 5.8.0+ gets 1 extra test for FORMAT reference
     # (see comment below)
-    plan tests => 28 +
+    plan tests => 29 +
         ( ( $^V && $^V ge v5.8.0 ) ? 2 : 0 );
 
     use_ok('Ref::Util');
