@@ -74,7 +74,7 @@
     DECL_MAIN_FUNC(x,op,objcond,type)           \
     DECL_CALL_CHK_FUNC(x)
 
-DECL(is_scalarref, <,  1, SVt_PVAV)
+DECL(is_scalarref, <,  !SvROK( SvRV(ref) ), SVt_PVAV)
 DECL(is_arrayref,  ==, 1, SVt_PVAV)
 DECL(is_hashref,   ==, 1, SVt_PVHV)
 DECL(is_coderef,   ==, 1, SVt_PVCV)
@@ -117,7 +117,7 @@ is_regexpref_pp(pTHX)
 DECL_XOP(is_regexpref)
 DECL_CALL_CHK_FUNC(is_regexpref)
 
-DECL(is_plain_scalarref, <,  !sv_isobject(ref), SVt_PVAV)
+DECL(is_plain_scalarref, <,  !sv_isobject(ref) && !SvROK( SvRV(ref) ), SVt_PVAV)
 DECL(is_plain_arrayref,  ==, !sv_isobject(ref), SVt_PVAV)
 DECL(is_plain_hashref,   ==, !sv_isobject(ref), SVt_PVHV)
 DECL(is_plain_coderef,   ==, !sv_isobject(ref), SVt_PVCV)
@@ -231,7 +231,7 @@ is_ref(SV *ref)
 SV *
 is_scalarref(SV *ref)
     PPCODE:
-        XSUB_BODY( ref, <, 1, SVt_PVAV );
+        XSUB_BODY( ref, <, !SvROK( SvRV(ref) ), SVt_PVAV );
 
 SV *
 is_arrayref(SV *ref)
@@ -325,7 +325,7 @@ is_plain_ref(SV *ref)
 SV *
 is_plain_scalarref(SV *ref)
     PPCODE:
-        XSUB_BODY( ref, <, !sv_isobject(ref), SVt_PVAV );
+        XSUB_BODY( ref, <, !sv_isobject(ref) && !SvROK( SvRV(ref) ), SVt_PVAV );
 
 SV *
 is_plain_arrayref(SV *ref)

@@ -236,6 +236,17 @@ Check for a scalar reference.
     is_scalarref(\30);
     is_scalarref(\$value);
 
+Note that, even though a reference is itself a type of scalar value, a
+reference to another reference is not treated as a scalar reference:
+
+    !is_scalarref(\\1);
+
+The rationale for this is two-fold. First, callers that want to decide how
+to handle inputs based on their reference type will usually want to treat a
+ref-ref and a scalar-ref differently. Secondly, this more closely matches
+the behavior of the C<ref> builtin and of L<Scalar::Util/reftype>, which
+report a ref-ref as C<REF> rather than C<SCALAR>.
+
 =head2 is_arrayref($ref)
 
 Check for an array reference.

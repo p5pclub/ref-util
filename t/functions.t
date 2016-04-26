@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 50;
+use Test::More tests => 52;
 
 BEGIN {
     use_ok('Ref::Util');
@@ -77,6 +77,9 @@ ok( !is_plain_arrayref(bless []), 'is_plain_arrayref (blessed)' );
 ok( !is_plain_hashref(bless {}), 'is_plain_hashref (blessed)' );
 ok( !is_plain_coderef(bless sub {1}), 'is_plain_coderef (blessed)' );
 ok( !is_plain_globref(bless \*FOO), 'is_plain_globref (blessed)' );
+
+ok( !is_scalarref(\\1),       '!is_scalarref (refref)' );
+ok( !is_plain_scalarref(\\1), '!is_plain_scalarref (refref)' );
 
 SKIP: {
     skip 'format references do not exist before Perl 5.8.0', 8
