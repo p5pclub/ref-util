@@ -46,7 +46,7 @@ BEGIN {
         [$blessed_format,            'blessed format'],
     );
 
-    plan tests => 18 * @cases + 1;  # extra one is for use_ok() above
+    plan tests => 26 * @cases + 1;  # extra one is for use_ok() above
 }
 
 BEGIN {
@@ -71,6 +71,14 @@ BEGIN {
         is_plain_globref
         is_plain_formatref
         is_plain_refref
+        is_blessed_ref
+        is_blessed_scalarref
+        is_blessed_arrayref
+        is_blessed_hashref
+        is_blessed_coderef
+        is_blessed_globref
+        is_blessed_formatref
+        is_blessed_refref
     >);
 }
 
@@ -78,36 +86,47 @@ for my $case (@cases) {
   SKIP:
     {
         my ($value, $desc, $tags) = @$case;
-        skip "format references do not exist before Perl 5.8.0", 18
+        skip "format references do not exist before Perl 5.8.0", 26
             if NO_FORMAT_REFS && $tags->{format};
 
         my %got = (
-            is_ref             => is_ref($value),
-            is_scalarref       => is_scalarref($value),
-            is_arrayref        => is_arrayref($value),
-            is_hashref         => is_hashref($value),
-            is_coderef         => is_coderef($value),
-            is_globref         => is_globref($value),
-            is_formatref       => NO_FORMAT_REFS ? 0 : is_formatref($value),
-            is_ioref           => is_ioref($value),
-            is_regexpref       => is_regexpref($value),
-            is_refref          => is_refref($value),
-            is_plain_ref       => is_plain_ref($value),
-            is_plain_scalarref => is_plain_scalarref($value),
-            is_plain_arrayref  => is_plain_arrayref($value),
-            is_plain_hashref   => is_plain_hashref($value),
-            is_plain_coderef   => is_plain_coderef($value),
-            is_plain_globref   => is_plain_globref($value),
-            is_plain_formatref => NO_FORMAT_REFS ? 0 : is_plain_formatref($value),
-            is_plain_refref    => is_plain_refref($value),
+            is_ref               => is_ref($value),
+            is_scalarref         => is_scalarref($value),
+            is_arrayref          => is_arrayref($value),
+            is_hashref           => is_hashref($value),
+            is_coderef           => is_coderef($value),
+            is_globref           => is_globref($value),
+            is_formatref         => NO_FORMAT_REFS ? 0 : is_formatref($value),
+            is_ioref             => is_ioref($value),
+            is_regexpref         => is_regexpref($value),
+            is_refref            => is_refref($value),
+            is_plain_ref         => is_plain_ref($value),
+            is_plain_scalarref   => is_plain_scalarref($value),
+            is_plain_arrayref    => is_plain_arrayref($value),
+            is_plain_hashref     => is_plain_hashref($value),
+            is_plain_coderef     => is_plain_coderef($value),
+            is_plain_globref     => is_plain_globref($value),
+            is_plain_formatref   => NO_FORMAT_REFS ? 0 : is_plain_formatref($value),
+            is_plain_refref      => is_plain_refref($value),
+            is_blessed_ref       => is_blessed_ref($value),
+            is_blessed_scalarref => is_blessed_scalarref($value),
+            is_blessed_arrayref  => is_blessed_arrayref($value),
+            is_blessed_hashref   => is_blessed_hashref($value),
+            is_blessed_coderef   => is_blessed_coderef($value),
+            is_blessed_globref   => is_blessed_globref($value),
+            is_blessed_formatref => NO_FORMAT_REFS ? 0 : is_blessed_formatref($value),
+            is_blessed_refref    => is_blessed_refref($value),
         );
 
         my %expected = (
-            is_ref       => 1,
-            is_plain_ref => $tags->{plain},
+            is_ref         => 1,
+            is_plain_ref   => $tags->{plain},
+            is_blessed_ref => $tags->{blessed} || $tags->{regexp} || $tags->{io},
             (map +("is_${_}ref" => $tags->{$_}),
              qw<scalar array hash code glob io regexp format ref>),
             (map +("is_plain_${_}ref" => $tags->{plain} && $tags->{$_}),
+             qw<scalar array hash code glob format ref>),
+            (map +("is_blessed_${_}ref" => $tags->{blessed} && $tags->{$_}),
              qw<scalar array hash code glob format ref>),
         );
 

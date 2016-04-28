@@ -140,6 +140,16 @@ DECL(is_plain_formatref, FORMATREF && PLAIN)
 DECL(is_plain_ioref,     REFTYPE(== SVt_PVIO) && PLAIN)
 DECL(is_plain_refref,    REFREF && PLAIN)
 
+DECL(is_blessed_ref,       !PLAIN)
+DECL(is_blessed_scalarref, JUSTSCALAR && !PLAIN)
+DECL(is_blessed_arrayref,  REFTYPE(== SVt_PVAV) && !PLAIN)
+DECL(is_blessed_hashref,   REFTYPE(== SVt_PVHV) && !PLAIN)
+DECL(is_blessed_coderef,   REFTYPE(== SVt_PVCV) && !PLAIN)
+DECL(is_blessed_globref,   REFTYPE(== SVt_PVGV) && !PLAIN)
+DECL(is_blessed_formatref, FORMATREF && !PLAIN)
+DECL(is_blessed_ioref,     REFTYPE(== SVt_PVIO) && !PLAIN)
+DECL(is_blessed_refref,    REFREF && !PLAIN)
+
 MODULE = Ref::Util		PACKAGE = Ref::Util
 
 BOOT:
@@ -162,4 +172,12 @@ BOOT:
         INSTALL( is_plain_globref,   "plain GLOB"   )
         INSTALL( is_plain_formatref,   "plain FORMAT"   )
         INSTALL( is_plain_refref,   "plain REF"   )
+        INSTALL( is_blessed_ref, "blessed" )
+        INSTALL( is_blessed_scalarref, "blessed SCALAR" )
+        INSTALL( is_blessed_arrayref,  "blessed ARRAY"  )
+        INSTALL( is_blessed_hashref,   "blessed HASH"   )
+        INSTALL( is_blessed_coderef,   "blessed CODE"   )
+        INSTALL( is_blessed_globref,   "blessed GLOB"   )
+        INSTALL( is_blessed_formatref,   "blessed FORMAT"   )
+        INSTALL( is_blessed_refref,   "blessed REF"   )
     }

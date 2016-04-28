@@ -18,6 +18,14 @@ our %EXPORT_TAGS = ( 'all' => [qw<
     is_plain_globref
     is_plain_formatref
     is_plain_refref
+    is_blessed_ref
+    is_blessed_scalarref
+    is_blessed_arrayref
+    is_blessed_hashref
+    is_blessed_coderef
+    is_blessed_globref
+    is_blessed_formatref
+    is_blessed_refref
 >] );
 our @EXPORT      = ();
 our @EXPORT_OK   = ( @{ $EXPORT_TAGS{'all'} } );
@@ -125,6 +133,10 @@ because some object happens to be implemented using a hash doesn't mean it's
 necessarily correct to treat it as a hash. For these situations, you can use
 C<is_plain_hashref> and friends, which have the same performance benefits as
 C<is_hashref>.
+
+There is also a family of functions with names like C<is_blessed_hashref>;
+these return true for blessed object instances that are implemented using
+the relevant underlying type.
 
 =item * Ignores overloading
 
@@ -357,6 +369,59 @@ Check for an unblessed format reference.
 Check for an unblessed reference to a reference.
 
     is_plain_refref( \[] ); # reference to array reference
+
+=head2 is_blessed_scalarref($ref)
+
+Check for a blessed scalar reference.
+
+    is_blessed_scalarref(bless \$value);
+
+=head2 is_blessed_ref($ref)
+
+Check for a blessed reference to anything.
+
+    is_blessed_ref(bless [], $class);
+
+=head2 is_blessed_arrayref($ref)
+
+Check for a blessed array reference.
+
+    is_blessed_arrayref(bless [], $class);
+
+=head2 is_blessed_hashref($ref)
+
+Check for a blessed hash reference.
+
+    is_blessed_hashref(bless {}, $class);
+
+=head2 is_blessed_coderef($ref)
+
+Check for a blessed code reference.
+
+    is_blessed_coderef( bless sub {}, $class );
+
+=head2 is_blessed_globref($ref)
+
+Check for a blessed glob reference.
+
+    is_blessed_globref( bless \*STDIN, $class );
+
+=head2 is_blessed_formatref($ref)
+
+Check for a blessed format reference.
+
+    # set up format for FH
+    format FH =
+    .
+
+    # now we can test it
+    is_blessed_formatref(bless *FH{'FORMAT'}, $class );
+
+=head2 is_blessed_refref($ref)
+
+Check for a blessed reference to a reference.
+
+    is_blessed_refref( bless \[], $class ); # reference to array reference
 
 =head1 SEE ALSO
 
