@@ -10,6 +10,29 @@
 # define USE_CUSTOM_OPS 0
 #endif
 
+/* This can go away once Devel::PPPort provides an implementation. The Perl
+ * core first provided an implementation in 5.9.5; this is almost exactly
+ * the logic used in relevant parts of the core as far back as at least
+ * 5.005. Note also that this static function is likely to be inlined by the
+ * compiler. */
+#ifndef SvRXOK
+#define SvRXOK(sv) refutil_sv_rxok(sv)
+static int
+refutil_sv_rxok(SV *ref)
+{
+    if (SvROK(ref)) {
+        SV *sv = SvRV(ref);
+        if (SvMAGICAL(sv)) {
+            MAGIC *mg = mg_find(sv, PERL_MAGIC_qr);
+            if (mg && mg->mg_obj) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+#endif
+
 /* Boolean expression that considers an SV* named "ref" */
 #define COND(expr) (SvROK(ref) && expr)
 
@@ -71,6 +94,7 @@ DECL(is_coderef,         REFTYPE(== SVt_PVCV))
 DECL(is_globref,         REFTYPE(== SVt_PVGV))
 DECL(is_formatref,       REFTYPE(== SVt_PVFM))
 DECL(is_ioref,           REFTYPE(== SVt_PVIO))
+DECL(is_regexpref,       SvRXOK(ref))
 DECL(is_refref,          REFREF)
 
 DECL(is_plain_ref,       PLAIN)
@@ -82,46 +106,6 @@ DECL(is_plain_globref,   REFTYPE(== SVt_PVGV) && PLAIN)
 DECL(is_plain_formatref, REFTYPE(== SVt_PVFM) && PLAIN)
 DECL(is_plain_ioref,     REFTYPE(== SVt_PVIO) && PLAIN)
 DECL(is_plain_refref,    REFREF && PLAIN)
-
-#define FUNC_BODY_REGEXP()       \
-    dSP;                         \
-    SV *ref = POPs;              \
-    PUSHs(                       \
-        SvRXOK(ref)              \
-        ? &PL_sv_yes : &PL_sv_no \
-    )
-
-/*
-    is_regexpref is a special case in which we shouldn't use the
-    type (SVt_REGEXP) because there's a special macro for it.
-
-    Previously:
-    DECL(is_regexpref, SvTYPE(ref) == SVt_REGEXP, 1)
-
-    And we're rewriting the following specific macro:
-    DECL_RUNTIME_FUNC(x, cond)
-
-    Once Devel::PPPort provides a reimplementation of SvRXOK() for older
-    Perls, we can merely add this above:
-
-        DECL(is_regexpref, SvRXOK(ref))
-
-*/
-static void
-THX_xsfunc_is_regexpref (pTHX_ CV *cv)
-{
-    FUNC_BODY_REGEXP();
-}
-
-static inline OP *
-is_regexpref_pp(pTHX)
-{
-    FUNC_BODY_REGEXP();
-    return NORMAL;
-}
-
-DECL_XOP(is_regexpref)
-DECL_CALL_CHK_FUNC(is_regexpref)
 
 #endif /* USE_CUSTOM_OPS */
 
@@ -193,38 +177,7 @@ is_coderef(SV *ref)
 SV *
 is_regexpref(SV *ref)
     PPCODE:
-        /*
-           it's okay to do the #if checks here
-           (instead of the implementation above for both opcode and xsub)
-           because opcodes aren't supported in such old perls anyway
-        */
-/* 5.9.x and under */
-#if PERL_VERSION < 10
-        if ( !SvROK(ref) ) {
-            XSRETURN_NO;
-            return;
-        }
-
-        SV*  val  = SvRV(ref);
-        U32 type = SvTYPE(val); /* XXX: Data::Dumper uses U32, correct? */
-        char* refval;
-
-        if ( SvOBJECT(val) )
-            refval = HvNAME( SvSTASH(val) ); /* originally HvNAME_get */
-        else
-            refval = Nullch;
-
-        if (refval && *refval == 'R' && strEQ(refval, "Regexp"))
-            XSRETURN_YES;
-        else
-            XSRETURN_NO;
-#else
-    /* 5.10.x and above */
-    /* SvRXOK() introduced by AEvar in:
-       f7e711955148e1ce710988aa3010c41ca8085a03
-    */
-    SvRXOK(ref) ? XSRETURN_YES : XSRETURN_NO;
-#endif
+        XSUB_BODY(SvRXOK(ref));
 
 SV *
 is_globref(SV *ref)
