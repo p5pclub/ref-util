@@ -1,7 +1,6 @@
-0.009
-        * Add a bunch of plain references functions to support
-          explicitly non-blessed variations of the functions.
-          (Aaron Crane)
+0.010
+        * Add is_plain_* functions to support explicitly non-blessed
+          variations of the functions. (Aaron Crane)
         * Support blessed and magical regexes in 5.10+. From the
           implementation perspective, we're now using SvRXOK() on
           Perl 5.10+ (both opcode and XS) because it's more correct.
