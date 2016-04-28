@@ -200,7 +200,7 @@ Support might be added, if a good reason arises.
 =back
 
 Additionally, two implementations are available, depending on the perl
-version you have. For perl that supports Custom OPs, we actually add
+version you have. For perls that supports Custom OPs, we actually add
 an OP (which is faster), and for perls that do not, we include
 an implementation that just calls an XS function - which is still
 faster than the Pure-Perl equivalent.
