@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 64;
+use Test::More tests => 72;
 
 BEGIN {
     use_ok('Ref::Util');
@@ -27,7 +27,10 @@ BEGIN {
     >);
 }
 
-our $FOO;                       # used below as "bless \*FOO"
+my $blessed_glob = do {
+    no warnings 'once';
+    bless \*FOO;
+};
 
 ok( is_ref(\1), 'is_ref (scalarref)' );
 ok( is_ref([]), 'is_ref (arrayref)' );
@@ -57,7 +60,7 @@ ok( is_arrayref([]), 'is_arrayref' );
 ok( is_hashref({}), 'is_hashref' );
 ok( is_coderef(sub {1}), 'is_coderef' );
 ok( is_regexpref(qr//), 'is_regexpref' );
-ok( is_globref(\*STDIN), 'is_globref' );
+ok( is_globref($blessed_glob), 'is_globref' );
 
 ok( is_regexpref(bless qr/^/, 'Foo'), 'is_regexpref on blessed' );
 ok( is_regexpref(bless qr/^/, 'Foo'), 'is_regexpref (randomly blessed)' );
@@ -72,7 +75,7 @@ ok( !is_plain_scalarref(do { bless \(my $x = 1) }), 'is_plain_scalarref (blessed
 ok( !is_plain_arrayref(bless []), 'is_plain_arrayref (blessed)' );
 ok( !is_plain_hashref(bless {}), 'is_plain_hashref (blessed)' );
 ok( !is_plain_coderef(bless sub {1}), 'is_plain_coderef (blessed)' );
-ok( !is_plain_globref(bless \*FOO), 'is_plain_globref (blessed)' );
+ok( !is_plain_globref($blessed_glob), 'is_plain_globref (blessed)' );
 
 ok( !is_scalarref(\\1), '!is_scalarref (refref)' );
 ok( !is_arrayref(\\1),  '!is_arrayref (refref)' );
@@ -111,3 +114,14 @@ SKIP: {
 ok( is_ioref(*STDOUT{'IO'}), 'is_ioref' );
 ok( is_refref(\\1), 'is_refref' );
 ok( is_plain_refref(\\1), 'is_plain_refref' );
+
+ok( !is_scalarref(\*STDIN), "!is_scalarref (glob)" );
+ok( !is_plain_scalarref(\*STDIN), "!is_plain_scalarref (glob)" );
+ok( !is_scalarref($blessed_glob), "!is_scalarref (blessed glob)" );
+ok( !is_plain_scalarref($blessed_glob), "!is_plain_scalarref (blessed glob)" );
+
+ok( !is_scalarref(qr/./), "!is_scalarref (regexp)" );
+ok( !is_plain_scalarref(qr/./), "!is_plain_scalarref (regexp)" );
+ok( !is_scalarref(bless qr/./, 'Foo'), "!is_scalarref (randomly-blessed regexp" );
+ok( !is_plain_scalarref(bless qr/./, 'Foo'),
+    "!is_plain_scalarref (randomly-blessed regexp" );

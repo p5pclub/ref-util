@@ -40,6 +40,14 @@ refutil_sv_rxok(SV *ref)
 #define REFTYPE(tail) (SvTYPE(SvRV(ref)) tail)
 #define REFREF        (SvROK( SvRV(ref) ))
 
+#define JUSTSCALAR (                            \
+        REFTYPE(< SVt_PVAV)                     \
+        && REFTYPE(!= SVt_PVGV)                 \
+        && (SvTYPE(SvRV(ref)) != SVt_PVGV)      \
+        && !REFREF                              \
+        && !SvRXOK(ref)                         \
+        )
+
 #if PERL_VERSION >= 7
 #define FORMATREF REFTYPE(== SVt_PVFM)
 #else
@@ -112,7 +120,7 @@ refutil_sv_rxok(SV *ref)
 #endif
 
 DECL(is_ref,             1)
-DECL(is_scalarref,       REFTYPE(<  SVt_PVAV) && !REFREF)
+DECL(is_scalarref,       JUSTSCALAR)
 DECL(is_arrayref,        REFTYPE(== SVt_PVAV))
 DECL(is_hashref,         REFTYPE(== SVt_PVHV))
 DECL(is_coderef,         REFTYPE(== SVt_PVCV))
@@ -123,7 +131,7 @@ DECL(is_regexpref,       SvRXOK(ref))
 DECL(is_refref,          REFREF)
 
 DECL(is_plain_ref,       PLAIN)
-DECL(is_plain_scalarref, REFTYPE(<  SVt_PVAV) && !REFREF && PLAIN)
+DECL(is_plain_scalarref, JUSTSCALAR && PLAIN)
 DECL(is_plain_arrayref,  REFTYPE(== SVt_PVAV) && PLAIN)
 DECL(is_plain_hashref,   REFTYPE(== SVt_PVHV) && PLAIN)
 DECL(is_plain_coderef,   REFTYPE(== SVt_PVCV) && PLAIN)
