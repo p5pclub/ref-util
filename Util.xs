@@ -159,8 +159,8 @@ BOOT:
         SET_OP( is_plain_hashref,   "plain HASH"   )
         SET_OP( is_plain_coderef,   "plain CODE"   )
         SET_OP( is_plain_globref,   "plain GLOB"   )
-        SET_OP( is_plain_formatref,   "plain FORMAT"   )
-        SET_OP( is_plain_refref,   "plain REF"   )
+        SET_OP( is_plain_formatref, "plain FORMAT"   )
+        SET_OP( is_plain_refref,    "plain REF"   )
     }
 
 #else /* not USE_CUSTOM_OPS */
