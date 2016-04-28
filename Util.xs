@@ -40,6 +40,12 @@ refutil_sv_rxok(SV *ref)
 #define REFTYPE(tail) (SvTYPE(SvRV(ref)) tail)
 #define REFREF        (SvROK( SvRV(ref) ))
 
+#if PERL_VERSION >= 7
+#define FORMATREF REFTYPE(== SVt_PVFM)
+#else
+#define FORMATREF (croak("is_formatref() isn't available on Perl 5.6.x and under"), 0)
+#endif
+
 #define XSUB_BODY(cond) COND(cond) ? XSRETURN_YES : XSRETURN_NO
 
 #define FUNC_BODY(cond)                                 \
@@ -92,7 +98,7 @@ DECL(is_arrayref,        REFTYPE(== SVt_PVAV))
 DECL(is_hashref,         REFTYPE(== SVt_PVHV))
 DECL(is_coderef,         REFTYPE(== SVt_PVCV))
 DECL(is_globref,         REFTYPE(== SVt_PVGV))
-DECL(is_formatref,       REFTYPE(== SVt_PVFM))
+DECL(is_formatref,       FORMATREF)
 DECL(is_ioref,           REFTYPE(== SVt_PVIO))
 DECL(is_regexpref,       SvRXOK(ref))
 DECL(is_refref,          REFREF)
@@ -103,7 +109,7 @@ DECL(is_plain_arrayref,  REFTYPE(== SVt_PVAV) && PLAIN)
 DECL(is_plain_hashref,   REFTYPE(== SVt_PVHV) && PLAIN)
 DECL(is_plain_coderef,   REFTYPE(== SVt_PVCV) && PLAIN)
 DECL(is_plain_globref,   REFTYPE(== SVt_PVGV) && PLAIN)
-DECL(is_plain_formatref, REFTYPE(== SVt_PVFM) && PLAIN)
+DECL(is_plain_formatref, FORMATREF && PLAIN)
 DECL(is_plain_ioref,     REFTYPE(== SVt_PVIO) && PLAIN)
 DECL(is_plain_refref,    REFREF && PLAIN)
 
@@ -187,11 +193,7 @@ is_globref(SV *ref)
 SV *
 is_formatref(SV *ref)
     PPCODE:
-#if PERL_VERSION < 7
-        croak("is_formatref() isn't available on Perl 5.6.x and under");
-#else
-        XSUB_BODY(REFTYPE(== SVt_PVFM));
-#endif
+        XSUB_BODY(FORMATREF);
 
 SV *
 is_ioref(SV *ref)
@@ -236,11 +238,7 @@ is_plain_globref(SV *ref)
 SV *
 is_plain_formatref(SV *ref)
     PPCODE:
-#if PERL_VERSION < 7
-        croak("is_plain_formatref() isn't available on Perl 5.6.x and under");
-#else
-        XSUB_BODY(REFTYPE(== SVt_PVFM) && PLAIN);
-#endif
+        XSUB_BODY(FORMATREF && PLAIN);
 
 SV *
 is_plain_refref(SV *ref)
