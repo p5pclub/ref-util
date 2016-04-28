@@ -119,7 +119,7 @@ MODULE = Ref::Util		PACKAGE = Ref::Util
 
 #if USE_CUSTOM_OPS
 
-#define SET_OP(x, ref)                                                \
+#define INSTALL(x, ref)                                                \
     {                                                                 \
         XopENTRY_set(& x ##_xop, xop_name, #x "_xop");                \
         XopENTRY_set(& x ##_xop, xop_desc, "'" ref "' ref check");    \
@@ -133,24 +133,24 @@ MODULE = Ref::Util		PACKAGE = Ref::Util
 
 BOOT:
     {
-        SET_OP( is_ref, "" )
-        SET_OP( is_scalarref, "SCALAR" )
-        SET_OP( is_arrayref,  "ARRAY"  )
-        SET_OP( is_hashref,   "HASH"   )
-        SET_OP( is_coderef,   "CODE"   )
-        SET_OP( is_regexpref, "REGEXP" )
-        SET_OP( is_globref,   "GLOB"   )
-        SET_OP( is_formatref, "FORMAT" )
-        SET_OP( is_ioref,     "IO"     )
-        SET_OP( is_refref,    "REF"    )
-        SET_OP( is_plain_ref, "plain" )
-        SET_OP( is_plain_scalarref, "plain SCALAR" )
-        SET_OP( is_plain_arrayref,  "plain ARRAY"  )
-        SET_OP( is_plain_hashref,   "plain HASH"   )
-        SET_OP( is_plain_coderef,   "plain CODE"   )
-        SET_OP( is_plain_globref,   "plain GLOB"   )
-        SET_OP( is_plain_formatref,   "plain FORMAT"   )
-        SET_OP( is_plain_refref,   "plain REF"   )
+        INSTALL( is_ref, "" )
+        INSTALL( is_scalarref, "SCALAR" )
+        INSTALL( is_arrayref,  "ARRAY"  )
+        INSTALL( is_hashref,   "HASH"   )
+        INSTALL( is_coderef,   "CODE"   )
+        INSTALL( is_regexpref, "REGEXP" )
+        INSTALL( is_globref,   "GLOB"   )
+        INSTALL( is_formatref, "FORMAT" )
+        INSTALL( is_ioref,     "IO"     )
+        INSTALL( is_refref,    "REF"    )
+        INSTALL( is_plain_ref, "plain" )
+        INSTALL( is_plain_scalarref, "plain SCALAR" )
+        INSTALL( is_plain_arrayref,  "plain ARRAY"  )
+        INSTALL( is_plain_hashref,   "plain HASH"   )
+        INSTALL( is_plain_coderef,   "plain CODE"   )
+        INSTALL( is_plain_globref,   "plain GLOB"   )
+        INSTALL( is_plain_formatref,   "plain FORMAT"   )
+        INSTALL( is_plain_refref,   "plain REF"   )
     }
 
 #else /* not USE_CUSTOM_OPS */
