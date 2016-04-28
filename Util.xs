@@ -46,19 +46,17 @@ refutil_sv_rxok(SV *ref)
 #define FORMATREF (croak("is_formatref() isn't available on Perl 5.6.x and under"), 0)
 #endif
 
-#define XSUB_BODY(cond) COND(cond) ? XSRETURN_YES : XSRETURN_NO
-
 #define FUNC_BODY(cond)                                 \
     dSP;                                                \
     SV *ref = POPs;                                     \
     PUSHs( COND(cond) ? &PL_sv_yes : &PL_sv_no )
 
-#if USE_CUSTOM_OPS
-
 #define DECL_RUNTIME_FUNC(x, cond)              \
     static void                                 \
     THX_xsfunc_ ## x (pTHX_ CV *cv)             \
     {                                           \
+        dMARK;                                  \
+        dAX;                                    \
         FUNC_BODY(cond);                        \
     }
 
@@ -86,11 +84,32 @@ refutil_sv_rxok(SV *ref)
         return newop;                                                               \
     }
 
+#if !USE_CUSTOM_OPS
+
+#define DECL(x, cond) DECL_RUNTIME_FUNC(x, cond)
+#define INSTALL(x, ref) \
+    newXS("Ref::Util::" #x, THX_xsfunc_ ## x, __FILE__);
+
+#else
+
 #define DECL(x, cond)                           \
     DECL_RUNTIME_FUNC(x, cond)                  \
     DECL_XOP(x)                                 \
     DECL_MAIN_FUNC(x, cond)                     \
     DECL_CALL_CHK_FUNC(x)
+
+#define INSTALL(x, ref)                                                \
+    {                                                                 \
+        XopENTRY_set(& x ##_xop, xop_name, #x "_xop");                \
+        XopENTRY_set(& x ##_xop, xop_desc, "'" ref "' ref check");    \
+        Perl_custom_op_register(aTHX_ x ##_pp, & x ##_xop);           \
+        CV *cv = newXSproto_portable(                                 \
+            "Ref::Util::" #x, THX_xsfunc_ ## x, __FILE__, "$"         \
+        );                                                            \
+        cv_set_call_checker(cv, THX_ck_entersub_args_ ## x, (SV*)cv); \
+    }
+
+#endif
 
 DECL(is_ref,             1)
 DECL(is_scalarref,       REFTYPE(<  SVt_PVAV) && !REFREF)
@@ -113,23 +132,7 @@ DECL(is_plain_formatref, FORMATREF && PLAIN)
 DECL(is_plain_ioref,     REFTYPE(== SVt_PVIO) && PLAIN)
 DECL(is_plain_refref,    REFREF && PLAIN)
 
-#endif /* USE_CUSTOM_OPS */
-
 MODULE = Ref::Util		PACKAGE = Ref::Util
-
-#if USE_CUSTOM_OPS
-
-#define INSTALL(x, ref)                                                \
-    {                                                                 \
-        XopENTRY_set(& x ##_xop, xop_name, #x "_xop");                \
-        XopENTRY_set(& x ##_xop, xop_desc, "'" ref "' ref check");    \
-        Perl_custom_op_register(aTHX_ x ##_pp, & x ##_xop);           \
-        CV *cv = newXSproto_portable(                                 \
-            "Ref::Util::" #x, THX_xsfunc_ ## x, __FILE__, "$"         \
-        );                                                            \
-        cv_set_call_checker(cv, THX_ck_entersub_args_ ## x, (SV*)cv); \
-    }
-
 
 BOOT:
     {
@@ -152,97 +155,3 @@ BOOT:
         INSTALL( is_plain_formatref,   "plain FORMAT"   )
         INSTALL( is_plain_refref,   "plain REF"   )
     }
-
-#else /* not USE_CUSTOM_OPS */
-
-SV *
-is_ref(SV *ref)
-    PPCODE:
-        XSUB_BODY(1);
-
-SV *
-is_scalarref(SV *ref)
-    PPCODE:
-        XSUB_BODY( REFTYPE(< SVt_PVAV) && !REFREF );
-
-SV *
-is_arrayref(SV *ref)
-    PPCODE:
-        XSUB_BODY(REFTYPE(== SVt_PVAV));
-
-SV *
-is_hashref(SV *ref)
-    PPCODE:
-        XSUB_BODY(REFTYPE(== SVt_PVHV));
-
-SV *
-is_coderef(SV *ref)
-    PPCODE:
-        XSUB_BODY(REFTYPE(== SVt_PVCV));
-
-SV *
-is_regexpref(SV *ref)
-    PPCODE:
-        XSUB_BODY(SvRXOK(ref));
-
-SV *
-is_globref(SV *ref)
-    PPCODE:
-        XSUB_BODY(REFTYPE(== SVt_PVGV));
-
-SV *
-is_formatref(SV *ref)
-    PPCODE:
-        XSUB_BODY(FORMATREF);
-
-SV *
-is_ioref(SV *ref)
-    PPCODE:
-        XSUB_BODY(REFTYPE(== SVt_PVIO));
-
-SV *
-is_refref(SV *ref)
-    PPCODE:
-        XSUB_BODY(REFREF);
-
-SV *
-is_plain_ref(SV *ref)
-    PPCODE:
-        XSUB_BODY(PLAIN);
-
-SV *
-is_plain_scalarref(SV *ref)
-    PPCODE:
-        XSUB_BODY(REFTYPE(< SVt_PVAV) && !REFREF && PLAIN);
-
-SV *
-is_plain_arrayref(SV *ref)
-    PPCODE:
-        XSUB_BODY(REFTYPE(== SVt_PVAV) && PLAIN);
-
-SV *
-is_plain_hashref(SV *ref)
-    PPCODE:
-        XSUB_BODY(REFTYPE(== SVt_PVHV) && PLAIN);
-
-SV *
-is_plain_coderef(SV *ref)
-    PPCODE:
-        XSUB_BODY(REFTYPE(== SVt_PVCV) && PLAIN);
-
-SV *
-is_plain_globref(SV *ref)
-    PPCODE:
-        XSUB_BODY(REFTYPE(== SVt_PVGV) && PLAIN);
-
-SV *
-is_plain_formatref(SV *ref)
-    PPCODE:
-        XSUB_BODY(FORMATREF && PLAIN);
-
-SV *
-is_plain_refref(SV *ref)
-    PPCODE:
-        XSUB_BODY(REFREF && PLAIN);
-
-#endif /* not USE_CUSTOM_OPS */
