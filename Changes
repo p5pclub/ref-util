@@ -1,4 +1,4 @@
-0.010
+0.010   2016-04-29
         * Add is_plain_* functions to support explicitly non-blessed
           variations of the functions. (Aaron Crane)
         * Add is_blessed* functions to support explicitly blessed
