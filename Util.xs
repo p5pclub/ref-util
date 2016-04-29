@@ -55,17 +55,17 @@ refutil_sv_rxok(SV *ref)
 #endif
 
 #define FUNC_BODY(cond)                                 \
-    dSP;                                                \
     SV *ref = POPs;                                     \
     PUSHs( COND(cond) ? &PL_sv_yes : &PL_sv_no )
 
-#define DECL_RUNTIME_FUNC(x, cond)              \
-    static void                                 \
-    THX_xsfunc_ ## x (pTHX_ CV *cv)             \
-    {                                           \
-        dMARK;                                  \
-        dAX;                                    \
-        FUNC_BODY(cond);                        \
+#define DECL_RUNTIME_FUNC(x, cond)                              \
+    static void                                                 \
+    THX_xsfunc_ ## x (pTHX_ CV *cv)                             \
+    {                                                           \
+        dXSARGS;                                                \
+        if (items != 1)                                         \
+            Perl_croak(aTHX_ "Usage: Ref::Util::" #x "(ref)");  \
+        FUNC_BODY(cond);                                        \
     }
 
 #define DECL_XOP(x) \
@@ -75,6 +75,7 @@ refutil_sv_rxok(SV *ref)
     static inline OP *                          \
     x ## _pp(pTHX)                              \
     {                                           \
+        dSP;                                    \
         FUNC_BODY(cond);                        \
         return NORMAL;                          \
     }
