@@ -16,9 +16,9 @@
  * 5.005. Note also that this static function is likely to be inlined by the
  * compiler. */
 #ifndef SvRXOK
-#define SvRXOK(sv) refutil_sv_rxok(sv)
+#define SvRXOK(sv) refutil_sv_rxok(aTHX_ sv)
 static int
-refutil_sv_rxok(SV *ref)
+refutil_sv_rxok(pTHX_ SV *ref)
 {
     if (SvROK(ref)) {
         SV *sv = SvRV(ref);
