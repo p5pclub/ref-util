@@ -56,7 +56,7 @@ Ref::Util - Utility functions for checking references
 
 =head1 VERSION
 
-0.010
+0.011
 
 =head1 DESCRIPTION
 

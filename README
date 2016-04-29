@@ -2,7 +2,7 @@ NAME
     Ref::Util - Utility functions for checking references
 
 VERSION
-    0.010
+    0.011
 
 DESCRIPTION
     Ref::Util introduces several functions to help identify references in a
