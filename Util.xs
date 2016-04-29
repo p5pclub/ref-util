@@ -10,6 +10,29 @@
 # define USE_CUSTOM_OPS 0
 #endif
 
+/* This can go away once Devel::PPPort provides an implementation. The Perl
+ * core first provided an implementation in 5.9.5; this is almost exactly
+ * the logic used in relevant parts of the core as far back as at least
+ * 5.005. Note also that this static function is likely to be inlined by the
+ * compiler. */
+#ifndef SvRXOK
+#define SvRXOK(sv) refutil_sv_rxok(sv)
+static int
+refutil_sv_rxok(SV *ref)
+{
+    if (SvROK(ref)) {
+        SV *sv = SvRV(ref);
+        if (SvMAGICAL(sv)) {
+            MAGIC *mg = mg_find(sv, PERL_MAGIC_qr);
+            if (mg && mg->mg_obj) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+#endif
+
 /* Boolean expression that considers an SV* named "ref" */
 #define COND(expr) (SvROK(ref) && expr)
 
@@ -17,19 +40,31 @@
 #define REFTYPE(tail) (SvTYPE(SvRV(ref)) tail)
 #define REFREF        (SvROK( SvRV(ref) ))
 
-#define XSUB_BODY(cond) COND(cond) ? XSRETURN_YES : XSRETURN_NO
+#define JUSTSCALAR (                            \
+        REFTYPE(< SVt_PVAV)                     \
+        && REFTYPE(!= SVt_PVGV)                 \
+        && (SvTYPE(SvRV(ref)) != SVt_PVGV)      \
+        && !REFREF                              \
+        && !SvRXOK(ref)                         \
+        )
+
+#if PERL_VERSION >= 7
+#define FORMATREF REFTYPE(== SVt_PVFM)
+#else
+#define FORMATREF (croak("is_formatref() isn't available on Perl 5.6.x and under"), 0)
+#endif
 
 #define FUNC_BODY(cond)                                 \
     dSP;                                                \
     SV *ref = POPs;                                     \
     PUSHs( COND(cond) ? &PL_sv_yes : &PL_sv_no )
 
-#if USE_CUSTOM_OPS
-
 #define DECL_RUNTIME_FUNC(x, cond)              \
     static void                                 \
     THX_xsfunc_ ## x (pTHX_ CV *cv)             \
     {                                           \
+        dMARK;                                  \
+        dAX;                                    \
         FUNC_BODY(cond);                        \
     }
 
@@ -57,79 +92,21 @@
         return newop;                                                               \
     }
 
+#if !USE_CUSTOM_OPS
+
+#define DECL(x, cond) DECL_RUNTIME_FUNC(x, cond)
+#define INSTALL(x, ref) \
+    newXS("Ref::Util::" #x, THX_xsfunc_ ## x, __FILE__);
+
+#else
+
 #define DECL(x, cond)                           \
     DECL_RUNTIME_FUNC(x, cond)                  \
     DECL_XOP(x)                                 \
     DECL_MAIN_FUNC(x, cond)                     \
     DECL_CALL_CHK_FUNC(x)
 
-DECL(is_ref,             1)
-DECL(is_scalarref,       REFTYPE(<  SVt_PVAV) && !REFREF)
-DECL(is_arrayref,        REFTYPE(== SVt_PVAV))
-DECL(is_hashref,         REFTYPE(== SVt_PVHV))
-DECL(is_coderef,         REFTYPE(== SVt_PVCV))
-DECL(is_globref,         REFTYPE(== SVt_PVGV))
-DECL(is_formatref,       REFTYPE(== SVt_PVFM))
-DECL(is_ioref,           REFTYPE(== SVt_PVIO))
-DECL(is_refref,          REFREF)
-
-DECL(is_plain_ref,       PLAIN)
-DECL(is_plain_scalarref, REFTYPE(<  SVt_PVAV) && !REFREF && PLAIN)
-DECL(is_plain_arrayref,  REFTYPE(== SVt_PVAV) && PLAIN)
-DECL(is_plain_hashref,   REFTYPE(== SVt_PVHV) && PLAIN)
-DECL(is_plain_coderef,   REFTYPE(== SVt_PVCV) && PLAIN)
-DECL(is_plain_globref,   REFTYPE(== SVt_PVGV) && PLAIN)
-DECL(is_plain_formatref, REFTYPE(== SVt_PVFM) && PLAIN)
-DECL(is_plain_ioref,     REFTYPE(== SVt_PVIO) && PLAIN)
-DECL(is_plain_refref,    REFREF && PLAIN)
-
-#define FUNC_BODY_REGEXP()       \
-    dSP;                         \
-    SV *ref = POPs;              \
-    PUSHs(                       \
-        SvRXOK(ref)              \
-        ? &PL_sv_yes : &PL_sv_no \
-    )
-
-/*
-    is_regexpref is a special case in which we shouldn't use the
-    type (SVt_REGEXP) because there's a special macro for it.
-
-    Previously:
-    DECL(is_regexpref, SvTYPE(ref) == SVt_REGEXP, 1)
-
-    And we're rewriting the following specific macro:
-    DECL_RUNTIME_FUNC(x, cond)
-
-    Once Devel::PPPort provides a reimplementation of SvRXOK() for older
-    Perls, we can merely add this above:
-
-        DECL(is_regexpref, SvRXOK(ref))
-
-*/
-static void
-THX_xsfunc_is_regexpref (pTHX_ CV *cv)
-{
-    FUNC_BODY_REGEXP();
-}
-
-static inline OP *
-is_regexpref_pp(pTHX)
-{
-    FUNC_BODY_REGEXP();
-    return NORMAL;
-}
-
-DECL_XOP(is_regexpref)
-DECL_CALL_CHK_FUNC(is_regexpref)
-
-#endif /* USE_CUSTOM_OPS */
-
-MODULE = Ref::Util		PACKAGE = Ref::Util
-
-#if USE_CUSTOM_OPS
-
-#define SET_OP(x, ref)                                                \
+#define INSTALL(x, ref)                                                \
     {                                                                 \
         XopENTRY_set(& x ##_xop, xop_name, #x "_xop");                \
         XopENTRY_set(& x ##_xop, xop_desc, "'" ref "' ref check");    \
@@ -140,158 +117,67 @@ MODULE = Ref::Util		PACKAGE = Ref::Util
         cv_set_call_checker(cv, THX_ck_entersub_args_ ## x, (SV*)cv); \
     }
 
+#endif
+
+DECL(is_ref,             1)
+DECL(is_scalarref,       JUSTSCALAR)
+DECL(is_arrayref,        REFTYPE(== SVt_PVAV))
+DECL(is_hashref,         REFTYPE(== SVt_PVHV))
+DECL(is_coderef,         REFTYPE(== SVt_PVCV))
+DECL(is_globref,         REFTYPE(== SVt_PVGV))
+DECL(is_formatref,       FORMATREF)
+DECL(is_ioref,           REFTYPE(== SVt_PVIO))
+DECL(is_regexpref,       SvRXOK(ref))
+DECL(is_refref,          REFREF)
+
+DECL(is_plain_ref,       PLAIN)
+DECL(is_plain_scalarref, JUSTSCALAR && PLAIN)
+DECL(is_plain_arrayref,  REFTYPE(== SVt_PVAV) && PLAIN)
+DECL(is_plain_hashref,   REFTYPE(== SVt_PVHV) && PLAIN)
+DECL(is_plain_coderef,   REFTYPE(== SVt_PVCV) && PLAIN)
+DECL(is_plain_globref,   REFTYPE(== SVt_PVGV) && PLAIN)
+DECL(is_plain_formatref, FORMATREF && PLAIN)
+DECL(is_plain_ioref,     REFTYPE(== SVt_PVIO) && PLAIN)
+DECL(is_plain_refref,    REFREF && PLAIN)
+
+DECL(is_blessed_ref,       !PLAIN)
+DECL(is_blessed_scalarref, JUSTSCALAR && !PLAIN)
+DECL(is_blessed_arrayref,  REFTYPE(== SVt_PVAV) && !PLAIN)
+DECL(is_blessed_hashref,   REFTYPE(== SVt_PVHV) && !PLAIN)
+DECL(is_blessed_coderef,   REFTYPE(== SVt_PVCV) && !PLAIN)
+DECL(is_blessed_globref,   REFTYPE(== SVt_PVGV) && !PLAIN)
+DECL(is_blessed_formatref, FORMATREF && !PLAIN)
+DECL(is_blessed_ioref,     REFTYPE(== SVt_PVIO) && !PLAIN)
+DECL(is_blessed_refref,    REFREF && !PLAIN)
+
+MODULE = Ref::Util		PACKAGE = Ref::Util
 
 BOOT:
     {
-        SET_OP( is_ref, "" )
-        SET_OP( is_scalarref, "SCALAR" )
-        SET_OP( is_arrayref,  "ARRAY"  )
-        SET_OP( is_hashref,   "HASH"   )
-        SET_OP( is_coderef,   "CODE"   )
-        SET_OP( is_regexpref, "REGEXP" )
-        SET_OP( is_globref,   "GLOB"   )
-        SET_OP( is_formatref, "FORMAT" )
-        SET_OP( is_ioref,     "IO"     )
-        SET_OP( is_refref,    "REF"    )
-        SET_OP( is_plain_ref, "plain" )
-        SET_OP( is_plain_scalarref, "plain SCALAR" )
-        SET_OP( is_plain_arrayref,  "plain ARRAY"  )
-        SET_OP( is_plain_hashref,   "plain HASH"   )
-        SET_OP( is_plain_coderef,   "plain CODE"   )
-        SET_OP( is_plain_globref,   "plain GLOB"   )
-        SET_OP( is_plain_formatref, "plain FORMAT"   )
-        SET_OP( is_plain_refref,    "plain REF"   )
+        INSTALL( is_ref, "" )
+        INSTALL( is_scalarref, "SCALAR" )
+        INSTALL( is_arrayref,  "ARRAY"  )
+        INSTALL( is_hashref,   "HASH"   )
+        INSTALL( is_coderef,   "CODE"   )
+        INSTALL( is_regexpref, "REGEXP" )
+        INSTALL( is_globref,   "GLOB"   )
+        INSTALL( is_formatref, "FORMAT" )
+        INSTALL( is_ioref,     "IO"     )
+        INSTALL( is_refref,    "REF"    )
+        INSTALL( is_plain_ref, "plain" )
+        INSTALL( is_plain_scalarref, "plain SCALAR" )
+        INSTALL( is_plain_arrayref,  "plain ARRAY"  )
+        INSTALL( is_plain_hashref,   "plain HASH"   )
+        INSTALL( is_plain_coderef,   "plain CODE"   )
+        INSTALL( is_plain_globref,   "plain GLOB"   )
+        INSTALL( is_plain_formatref,   "plain FORMAT"   )
+        INSTALL( is_plain_refref,   "plain REF"   )
+        INSTALL( is_blessed_ref, "blessed" )
+        INSTALL( is_blessed_scalarref, "blessed SCALAR" )
+        INSTALL( is_blessed_arrayref,  "blessed ARRAY"  )
+        INSTALL( is_blessed_hashref,   "blessed HASH"   )
+        INSTALL( is_blessed_coderef,   "blessed CODE"   )
+        INSTALL( is_blessed_globref,   "blessed GLOB"   )
+        INSTALL( is_blessed_formatref,   "blessed FORMAT"   )
+        INSTALL( is_blessed_refref,   "blessed REF"   )
     }
-
-#else /* not USE_CUSTOM_OPS */
-
-SV *
-is_ref(SV *ref)
-    PPCODE:
-        XSUB_BODY(1);
-
-SV *
-is_scalarref(SV *ref)
-    PPCODE:
-        XSUB_BODY( REFTYPE(< SVt_PVAV) && !REFREF );
-
-SV *
-is_arrayref(SV *ref)
-    PPCODE:
-        XSUB_BODY(REFTYPE(== SVt_PVAV));
-
-SV *
-is_hashref(SV *ref)
-    PPCODE:
-        XSUB_BODY(REFTYPE(== SVt_PVHV));
-
-SV *
-is_coderef(SV *ref)
-    PPCODE:
-        XSUB_BODY(REFTYPE(== SVt_PVCV));
-
-SV *
-is_regexpref(SV *ref)
-    PPCODE:
-        /*
-           it's okay to do the #if checks here
-           (instead of the implementation above for both opcode and xsub)
-           because opcodes aren't supported in such old perls anyway
-        */
-/* 5.9.x and under */
-#if PERL_VERSION < 10
-        if ( !SvROK(ref) ) {
-            XSRETURN_NO;
-            return;
-        }
-
-        SV*  val  = SvRV(ref);
-        U32 type = SvTYPE(val); /* XXX: Data::Dumper uses U32, correct? */
-        char* refval;
-
-        if ( SvOBJECT(val) )
-            refval = HvNAME( SvSTASH(val) ); /* originally HvNAME_get */
-        else
-            refval = Nullch;
-
-        if (refval && *refval == 'R' && strEQ(refval, "Regexp"))
-            XSRETURN_YES;
-        else
-            XSRETURN_NO;
-#else
-    /* 5.10.x and above */
-    /* SvRXOK() introduced by AEvar in:
-       f7e711955148e1ce710988aa3010c41ca8085a03
-    */
-    SvRXOK(ref) ? XSRETURN_YES : XSRETURN_NO;
-#endif
-
-SV *
-is_globref(SV *ref)
-    PPCODE:
-        XSUB_BODY(REFTYPE(== SVt_PVGV));
-
-SV *
-is_formatref(SV *ref)
-    PPCODE:
-#if PERL_VERSION < 7
-        croak("is_formatref() isn't available on Perl 5.6.x and under");
-#else
-        XSUB_BODY(REFTYPE(== SVt_PVFM));
-#endif
-
-SV *
-is_ioref(SV *ref)
-    PPCODE:
-        XSUB_BODY(REFTYPE(== SVt_PVIO));
-
-SV *
-is_refref(SV *ref)
-    PPCODE:
-        XSUB_BODY(REFREF);
-
-SV *
-is_plain_ref(SV *ref)
-    PPCODE:
-        XSUB_BODY(PLAIN);
-
-SV *
-is_plain_scalarref(SV *ref)
-    PPCODE:
-        XSUB_BODY(REFTYPE(< SVt_PVAV) && !REFREF && PLAIN);
-
-SV *
-is_plain_arrayref(SV *ref)
-    PPCODE:
-        XSUB_BODY(REFTYPE(== SVt_PVAV) && PLAIN);
-
-SV *
-is_plain_hashref(SV *ref)
-    PPCODE:
-        XSUB_BODY(REFTYPE(== SVt_PVHV) && PLAIN);
-
-SV *
-is_plain_coderef(SV *ref)
-    PPCODE:
-        XSUB_BODY(REFTYPE(== SVt_PVCV) && PLAIN);
-
-SV *
-is_plain_globref(SV *ref)
-    PPCODE:
-        XSUB_BODY(REFTYPE(== SVt_PVGV) && PLAIN);
-
-SV *
-is_plain_formatref(SV *ref)
-    PPCODE:
-#if PERL_VERSION < 7
-        croak("is_plain_formatref() isn't available on Perl 5.6.x and under");
-#else
-        XSUB_BODY(REFTYPE(== SVt_PVFM) && PLAIN);
-#endif
-
-SV *
-is_plain_refref(SV *ref)
-    PPCODE:
-        XSUB_BODY(REFREF && PLAIN);
-
-#endif /* not USE_CUSTOM_OPS */
