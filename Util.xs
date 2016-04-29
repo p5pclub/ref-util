@@ -106,10 +106,11 @@ refutil_sv_rxok(SV *ref)
     DECL_MAIN_FUNC(x, cond)                     \
     DECL_CALL_CHK_FUNC(x)
 
-#define INSTALL(x, ref)                                                \
+#define INSTALL(x, ref)                                               \
     {                                                                 \
         XopENTRY_set(& x ##_xop, xop_name, #x "_xop");                \
         XopENTRY_set(& x ##_xop, xop_desc, "'" ref "' ref check");    \
+        XopENTRY_set(& x ##_xop, xop_class, OA_UNOP);                 \
         Perl_custom_op_register(aTHX_ x ##_pp, & x ##_xop);           \
         CV *cv = newXSproto_portable(                                 \
             "Ref::Util::" #x, THX_xsfunc_ ## x, __FILE__, "$"         \
