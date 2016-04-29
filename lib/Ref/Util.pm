@@ -8,8 +8,17 @@ use Exporter 5.57 'import';
 
 our $VERSION     = '0.008';
 our %EXPORT_TAGS = ( 'all' => [qw<
-    is_scalarref is_arrayref is_hashref is_coderef is_regexpref
-    is_globref is_formatref is_ioref is_refref is_ref
+    is_ref
+    is_scalarref
+    is_arrayref
+    is_hashref
+    is_coderef
+    is_regexpref
+    is_globref
+    is_formatref
+    is_ioref
+    is_refref
+
     is_plain_ref
     is_plain_scalarref
     is_plain_arrayref
@@ -18,6 +27,7 @@ our %EXPORT_TAGS = ( 'all' => [qw<
     is_plain_globref
     is_plain_formatref
     is_plain_refref
+
     is_blessed_ref
     is_blessed_scalarref
     is_blessed_arrayref
@@ -46,7 +56,7 @@ Ref::Util - Utility functions for checking references
 
 =head1 VERSION
 
-0.008
+0.010
 
 =head1 DESCRIPTION
 
@@ -113,6 +123,13 @@ string:
     if ( reftype($foo) eq 'ARRAY' ) { ... }
 
 =item * Supports blessed variables
+
+B<Note:> In future versions, the idea is to make the default functions
+use the B<plain> variation, which means explicitly non-blessed references.
+If you want to explicitly check for B<blessed> references, you should use
+the C<is_blessed_*> functions. There will be an C<is_any_*> variation
+which will act like the current main functions - not caring whether it's
+blessed or not.
 
 When calling C<ref>, you receive either the reference type (B<SCALAR>,
 B<ARRAY>, B<HASH>, etc.) or the package it's blessed into.
@@ -460,5 +477,7 @@ The following people have been invaluable in their feedback and support.
 =item * Gonzalo Diethelm
 
 =item * p5pclub
+
+=item * Aaron Crane
 
 =back
