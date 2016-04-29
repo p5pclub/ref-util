@@ -181,3 +181,9 @@ BOOT:
         INSTALL( is_blessed_formatref,   "blessed FORMAT"   )
         INSTALL( is_blessed_refref,   "blessed REF"   )
     }
+
+SV *
+_using_custom_ops()
+    PPCODE:
+        /* This is provided for the test suite; do not use it. */
+        USE_CUSTOM_OPS ? XSRETURN_YES : XSRETURN_NO;
