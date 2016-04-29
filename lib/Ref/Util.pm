@@ -6,7 +6,7 @@ use XSLoader;
 
 use Exporter 5.57 'import';
 
-our $VERSION     = '0.008';
+our $VERSION     = '0.010';
 our %EXPORT_TAGS = ( 'all' => [qw<
     is_ref
     is_scalarref
