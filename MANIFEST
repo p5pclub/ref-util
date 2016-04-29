@@ -1,12 +1,14 @@
+Changes
 lib/Ref/Util.pm
 LICENSE
 Makefile.PL
 MANIFEST			This list of files
 ppport.h
+README
 t/arrayref.t
 t/dynamic.t
 t/expr.t
 t/functions.t
+t/list.t
+tools/bench.pl
 Util.xs
-README
-Changes
