@@ -1,10 +1,13 @@
 use strict;
 use warnings;
-use Test::More tests => 4;
+use Test::More tests => 6;
 use Ref::Util qw<is_arrayref is_hashref>;
 
 my $array_func = \&is_arrayref;
 my $hash_func = \&is_hashref;
+
+is(prototype($array_func), '$', 'is_arrayref has "$" prototype');
+is(prototype($hash_func), '$', 'is_hashref has "$" prototype');
 
 # We have to use string eval for this, because when the custom op is being
 # used, we expect the direct calls to fail at compile time

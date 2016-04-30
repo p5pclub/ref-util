@@ -97,7 +97,7 @@ refutil_sv_rxok(SV *ref)
 
 #define DECL(x, cond) DECL_RUNTIME_FUNC(x, cond)
 #define INSTALL(x, ref) \
-    newXS("Ref::Util::" #x, THX_xsfunc_ ## x, __FILE__);
+    newXSproto("Ref::Util::" #x, THX_xsfunc_ ## x, __FILE__, "$");
 
 #else
 
