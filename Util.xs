@@ -153,6 +153,8 @@ DECL(is_blessed_refref,    REFREF && !PLAIN)
 
 MODULE = Ref::Util		PACKAGE = Ref::Util
 
+PROTOTYPES: DISABLE
+
 BOOT:
     {
         INSTALL( is_ref, "" )
