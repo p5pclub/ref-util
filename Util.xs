@@ -33,6 +33,14 @@ refutil_sv_rxok(SV *ref)
 }
 #endif
 
+#ifndef OpSIBLING
+#define OpSIBLING(o) ((o)->op_sibling)
+#endif
+
+#ifndef OpLASTSIB_set
+#define OpLASTSIB_set(o, parent) ((o)->op_sibling = NULL)
+#endif
+
 /* Boolean expression that considers an SV* named "ref" */
 #define COND(expr) (SvROK(ref) && expr)
 
@@ -84,8 +92,9 @@ refutil_sv_rxok(SV *ref)
     THX_ck_entersub_args_ ## x(pTHX_ OP *entersubop, GV *namegv, SV *ckobj)         \
     {                                                                               \
         entersubop = ck_entersub_args_proto(entersubop, namegv, ckobj);             \
-        OP *arg = cLISTOPx( cUNOPx( entersubop )->op_first )->op_first->op_sibling; \
-        arg->op_sibling = NULL;                                                     \
+        OP *argparent = cUNOPx( entersubop )->op_first;                             \
+        OP *arg = OpSIBLING( cLISTOPx(argparent)->op_first );                       \
+        OpLASTSIB_set(arg, argparent);                                              \
         OP *newop = newUNOP( OP_NULL, 0, arg );                                     \
         newop->op_type   = OP_CUSTOM;                                               \
         newop->op_ppaddr = x ## _pp;                                                \
