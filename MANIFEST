@@ -10,5 +10,6 @@ t/dynamic.t
 t/expr.t
 t/functions.t
 t/list.t
+t/toomany.t
 tools/bench.pl
 Util.xs
