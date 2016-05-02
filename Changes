@@ -1,3 +1,8 @@
+
+        * Work on Perl 5.22 and above with -DPERL_OP_PARENT.
+          (Aaron Crane)
+        * Verify number of arguments. (Aaron Crane)
+
 0.011   2016-04-29
         * Update README.
 
