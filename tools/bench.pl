@@ -1,8 +1,8 @@
 use strict;
 use warnings;
 
-use Ref::Util 'is_arrayref';
-use Scalar::Util 'reftype';
+use Ref::Util qw<is_arrayref is_plain_arrayref is_plain_hashref>;
+use Scalar::Util ();
 use Dumbbench;
 
 my $bench = Dumbbench->new(
@@ -14,18 +14,23 @@ my $ref = [];
 no warnings;
 $bench->add_instances(
     Dumbbench::Instance::PerlSub->new(
-        name => 'XS',
-        code => sub { Ref::Util::is_arrayref($ref) for(1..1e7) },
+        name => 'Ref::Util',
+        code => sub { Ref::Util::is_plain_arrayref($ref) for ( 1 .. 1e5 ) },
     ),
 
     Dumbbench::Instance::PerlSub->new(
-        name => 'reftype',
-        code => sub { reftype($ref) eq 'ARRAY' for(1..1e7) },
+        name => 'proper reftype()',
+        code => sub {
+            ref $ref
+                && Scalar::Util::reftype($ref) eq 'ARRAY'
+                && !Scalar::Util::blessed($ref)
+                for ( 1 .. 1e5 );
+        },
     ),
 
     Dumbbench::Instance::PerlSub->new(
-        name => 'PP',
-        code => sub { ref($ref) eq 'ARRAY' for(1..1e7) },
+        name => 'simple ref()',
+        code => sub { ref($ref) eq 'ARRAY' for ( 1 .. 1e7 ) },
     ),
 );
 
