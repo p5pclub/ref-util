@@ -49,7 +49,7 @@
     static XOP x ## _xop;
 
 #define DECL_MAIN_FUNC(x, cond)                 \
-    static inline OP *                          \
+    static OP *                                 \
     x ## _pp(pTHX)                              \
     {                                           \
         dSP;                                    \
