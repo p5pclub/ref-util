@@ -54,6 +54,7 @@
     {                                           \
         dSP;                                    \
         FUNC_BODY(cond);                        \
+        PUTBACK;                                \
         return NORMAL;                          \
     }
 
