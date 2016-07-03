@@ -24,5 +24,6 @@ WriteMakefile(
             },
         },
     },
+    MIN_PERL_VERSION => '5.6.2',
 );
 
