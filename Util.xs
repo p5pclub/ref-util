@@ -10,37 +10,6 @@
 # define USE_CUSTOM_OPS 0
 #endif
 
-/* This can go away once Devel::PPPort provides an implementation. The Perl
- * core first provided an implementation in 5.9.5; this is almost exactly
- * the logic used in relevant parts of the core as far back as at least
- * 5.005. Note also that this static function is likely to be inlined by the
- * compiler. */
-#ifndef SvRXOK
-#define SvRXOK(sv) refutil_sv_rxok(aTHX_ sv)
-static int
-refutil_sv_rxok(pTHX_ SV *ref)
-{
-    if (SvROK(ref)) {
-        SV *sv = SvRV(ref);
-        if (SvMAGICAL(sv)) {
-            MAGIC *mg = mg_find(sv, PERL_MAGIC_qr);
-            if (mg && mg->mg_obj) {
-                return 1;
-            }
-        }
-    }
-    return 0;
-}
-#endif
-
-#ifndef OpSIBLING
-#define OpSIBLING(o) ((o)->op_sibling)
-#endif
-
-#ifndef OpLASTSIB_set
-#define OpLASTSIB_set(o, parent) ((o)->op_sibling = NULL)
-#endif
-
 /* Boolean expression that considers an SV* named "ref" */
 #define COND(expr) (SvROK(ref) && expr)
 
