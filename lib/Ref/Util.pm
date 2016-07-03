@@ -481,3 +481,8 @@ The following people have been invaluable in their feedback and support.
 =item * Aaron Crane
 
 =back
+
+=head1 LICENSE
+
+This software is made available under the MIT Licence as stated in the
+accompanying LICENSE file.
