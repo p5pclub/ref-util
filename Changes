@@ -3,8 +3,8 @@
           do not come as a list. (Zefram)
         * Fix memory leak in dangling op. (Zefram)
         * Rework op implementation. (Zefram)
-          Thanks to Christian Walde for adding the commits to all the
-          above work!
+          Thanks to Christian Walde for porting and merging Zefram's work
+          from Hash::SharedMem.
         * Update ppport.h file from Devel::PPPort and remove the copy of
           SVRXOK since it's now available.
           (Christian Walde)
