@@ -10,37 +10,6 @@
 # define USE_CUSTOM_OPS 0
 #endif
 
-/* This can go away once Devel::PPPort provides an implementation. The Perl
- * core first provided an implementation in 5.9.5; this is almost exactly
- * the logic used in relevant parts of the core as far back as at least
- * 5.005. Note also that this static function is likely to be inlined by the
- * compiler. */
-#ifndef SvRXOK
-#define SvRXOK(sv) refutil_sv_rxok(aTHX_ sv)
-static int
-refutil_sv_rxok(pTHX_ SV *ref)
-{
-    if (SvROK(ref)) {
-        SV *sv = SvRV(ref);
-        if (SvMAGICAL(sv)) {
-            MAGIC *mg = mg_find(sv, PERL_MAGIC_qr);
-            if (mg && mg->mg_obj) {
-                return 1;
-            }
-        }
-    }
-    return 0;
-}
-#endif
-
-#ifndef OpSIBLING
-#define OpSIBLING(o) ((o)->op_sibling)
-#endif
-
-#ifndef OpLASTSIB_set
-#define OpLASTSIB_set(o, parent) ((o)->op_sibling = NULL)
-#endif
-
 /* Boolean expression that considers an SV* named "ref" */
 #define COND(expr) (SvROK(ref) && expr)
 
@@ -80,25 +49,65 @@ refutil_sv_rxok(pTHX_ SV *ref)
     static XOP x ## _xop;
 
 #define DECL_MAIN_FUNC(x, cond)                 \
-    static inline OP *                          \
+    static OP *                                 \
     x ## _pp(pTHX)                              \
     {                                           \
         dSP;                                    \
         FUNC_BODY(cond);                        \
+        PUTBACK;                                \
         return NORMAL;                          \
     }
 
+// This function extracts the args for the custom op, and deletes the remaining
+// ops from memory, so they can then be replaced entirely by the custom op.
 #define DECL_CALL_CHK_FUNC(x)                                               \
     static OP *                                                             \
     THX_ck_entersub_args_ ## x(pTHX_ OP *entersubop, GV *namegv, SV *ckobj) \
     {                                                                       \
+        /* fix up argument structures */                                    \
         entersubop = ck_entersub_args_proto(entersubop, namegv, ckobj);     \
-        OP *argparent = cUNOPx( entersubop )->op_first;                     \
-        OP *arg = OpSIBLING( cLISTOPx(argparent)->op_first );               \
-        OpLASTSIB_set(arg, argparent);                                      \
+                                                                            \
+        /* extract the args for the custom op, and delete the remaining ops \
+           NOTE: this is the *single* arg version, multi-arg is more        \
+           complicated, see Hash::SharedMem's THX_ck_entersub_args_hsm */   \
+                                                                            \
+        /* These comments will visualize how the op tree look like after    \
+           each operation. We usually start out with this: */               \
+        /*** entersub( list( push, arg1, cv ) ) */                          \
+        /* Though in rare cases it can also look like this: */              \
+        /*** entersub( push, arg1, cv ) */                                  \
+                                                                            \
+        /* first, get the real pushop, after which comes the arg list */    \
+        OP *pushop = cUNOPx( entersubop )->op_first;    /* Cast the entersub op as an op with a single child            \
+                                                           and get that child (the args list or pushop). */             \
+        if( !OpHAS_SIBLING( pushop ) )          /* Go one layer deeper to get at the real pushop. */                    \
+          pushop = cUNOPx( pushop )->op_first;  /* (Sometimes not necessary when pushop is directly on entersub.) */    \
+                                                                            \
+        /* then extract the arg */                                          \
+        OP *arg = OpSIBLING( pushop );  /* Get a pointer to the first arg op                                            \
+                                           so we can attach it to the custom op later on. */                            \
+        /*** entersub( list( push, arg1, cv ) ) + ( arg1, cv ) */           \
+                                                                            \
+        /* and prepare to delete the other ops */                           \
+        OpMORESIB_set( pushop, OpSIBLING( arg ) );  /* Replace the first op of the arg list with the last arg op        \
+                                                       (the cv op, i.e. pointer to original xs function),               \
+                                                       which allows recursive deletion of all unneeded ops              \
+                                                       while keeping the arg list. */                                   \
+        /*** entersub( list( push, cv ) ) + ( arg1, cv ) */                 \
+                                                                            \
+        OpLASTSIB_set( arg, NULL ); /* Remove the trailing cv op from the arg list,                                     \
+                                       by declaring the arg to be the last sibling in the arg list. */                  \
+        /*** entersub( list( push, cv ) ) + ( arg1 ) */                     \
+                                                                            \
+        op_free( entersubop );  /* Recursively free entersubop + children, as it'll be replaced by the op we return. */ \
+        /*** ( arg1 ) */                                                    \
+                                                                            \
+        /* create and return new op */                                      \
         OP *newop = newUNOP( OP_NULL, 0, arg );                             \
-        newop->op_type   = OP_CUSTOM;                                       \
+        newop->op_type   = OP_CUSTOM;   /* can't do this in the new above, due to crashes pre-5.22 */                   \
         newop->op_ppaddr = x ## _pp;                                        \
+        /*** custom_op( arg1 ) */                                           \
+                                                                            \
         return newop;                                                       \
     }
 
