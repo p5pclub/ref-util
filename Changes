@@ -1,4 +1,13 @@
-
+0.100
+        * Support situations in op-code implementation where the parameters
+          do not come as a list. (Zefram)
+        * Fix memory leak in dangling op. (Zefram)
+        * Rework op implementation. (Zefram)
+          Thanks to Christian Walde for adding the commits to all the
+          above work!
+        * Update ppport.h file from Devel::PPPort and remove the copy of
+          SVRXOK since it's now available.
+          (Christian Walde)
         * Add license in Pod. (Pete Houston)
         * Specify minimum version of perl (5.6.2). (Pete Houston)
 
