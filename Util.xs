@@ -125,10 +125,11 @@
     DECL_MAIN_FUNC(x, cond)                     \
     DECL_CALL_CHK_FUNC(x)
 
-#define INSTALL(x, ref)                                                \
+#define INSTALL(x, ref)                                               \
     {                                                                 \
         XopENTRY_set(& x ##_xop, xop_name, #x "_xop");                \
         XopENTRY_set(& x ##_xop, xop_desc, "'" ref "' ref check");    \
+        XopENTRY_set(& x ##_xop, xop_class, OA_UNOP);                 \
         Perl_custom_op_register(aTHX_ x ##_pp, & x ##_xop);           \
         CV *cv = newXSproto_portable(                                 \
             "Ref::Util::" #x, THX_xsfunc_ ## x, __FILE__, "$"         \
@@ -202,3 +203,9 @@ BOOT:
         INSTALL( is_blessed_formatref,   "blessed FORMAT"   )
         INSTALL( is_blessed_refref,   "blessed REF"   )
     }
+
+SV *
+_using_custom_ops()
+    PPCODE:
+        /* This is provided for the test suite; do not use it. */
+        USE_CUSTOM_OPS ? XSRETURN_YES : XSRETURN_NO;
