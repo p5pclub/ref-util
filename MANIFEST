@@ -11,5 +11,6 @@ t/expr.t
 t/functions.t
 t/list.t
 t/toomany.t
+t/magic.t
 tools/bench.pl
 Util.xs
