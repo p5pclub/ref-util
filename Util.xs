@@ -67,46 +67,59 @@
         /* fix up argument structures */                                    \
         entersubop = ck_entersub_args_proto(entersubop, namegv, ckobj);     \
                                                                             \
-        /* extract the args for the custom op, and delete the remaining ops \
-           NOTE: this is the *single* arg version, multi-arg is more        \
+        /* extract the args for the custom op, and delete the remaining ops
+           NOTE: this is the *single* arg version, multi-arg is more
            complicated, see Hash::SharedMem's THX_ck_entersub_args_hsm */   \
                                                                             \
-        /* These comments will visualize how the op tree look like after    \
+        /* These comments will visualize how the op tree look like after
            each operation. We usually start out with this: */               \
-        /*** entersub( list( push, arg1, cv ) ) */                          \
+        /* --> entersub( list( push, arg1, cv ) ) */                        \
         /* Though in rare cases it can also look like this: */              \
-        /*** entersub( push, arg1, cv ) */                                  \
+        /* --> entersub( push, arg1, cv ) */                                \
                                                                             \
         /* first, get the real pushop, after which comes the arg list */    \
-        OP *pushop = cUNOPx( entersubop )->op_first;    /* Cast the entersub op as an op with a single child            \
-                                                           and get that child (the args list or pushop). */             \
-        if( !OpHAS_SIBLING( pushop ) )          /* Go one layer deeper to get at the real pushop. */                    \
-          pushop = cUNOPx( pushop )->op_first;  /* (Sometimes not necessary when pushop is directly on entersub.) */    \
+                                                                            \
+        /* Cast the entersub op as an op with a single child */             \
+        /* and get that child (the args list or pushop). */                 \
+        OP *pushop = cUNOPx( entersubop )->op_first;                        \
+                                                                            \
+        /* Go one layer deeper to get at the real pushop. */                \
+        if( !OpHAS_SIBLING( pushop ) )                                      \
+          /* Sometimes not necessary
+             (when pushop is directly on entersub.) */                      \
+          pushop = cUNOPx( pushop )->op_first;                              \
                                                                             \
         /* then extract the arg */                                          \
-        OP *arg = OpSIBLING( pushop );  /* Get a pointer to the first arg op                                            \
-                                           so we can attach it to the custom op later on. */                            \
-        /*** entersub( list( push, arg1, cv ) ) + ( arg1, cv ) */           \
+        /* Get a pointer to the first arg op */                             \
+        /* so we can attach it to the custom op later on. */                \
+        OP *arg = OpSIBLING( pushop );                                      \
+                                                                            \
+        /* --> entersub( list( push, arg1, cv ) ) + ( arg1, cv ) */         \
                                                                             \
         /* and prepare to delete the other ops */                           \
-        OpMORESIB_set( pushop, OpSIBLING( arg ) );  /* Replace the first op of the arg list with the last arg op        \
-                                                       (the cv op, i.e. pointer to original xs function),               \
-                                                       which allows recursive deletion of all unneeded ops              \
-                                                       while keeping the arg list. */                                   \
-        /*** entersub( list( push, cv ) ) + ( arg1, cv ) */                 \
+        /* Replace the first op of the arg list with the last arg op
+           (the cv op, i.e. pointer to original xs function),
+           which allows recursive deletion of all unneeded ops
+           while keeping the arg list. */                                   \
+        OpMORESIB_set( pushop, OpSIBLING( arg ) );                          \
+        /* --> entersub( list( push, cv ) ) + ( arg1, cv ) */               \
                                                                             \
-        OpLASTSIB_set( arg, NULL ); /* Remove the trailing cv op from the arg list,                                     \
-                                       by declaring the arg to be the last sibling in the arg list. */                  \
-        /*** entersub( list( push, cv ) ) + ( arg1 ) */                     \
+        /* Remove the trailing cv op from the arg list,
+           by declaring the arg to be the last sibling in the arg list. */  \
+        OpLASTSIB_set( arg, NULL );                                         \
+        /* --> entersub( list( push, cv ) ) + ( arg1 ) */                   \
                                                                             \
-        op_free( entersubop );  /* Recursively free entersubop + children, as it'll be replaced by the op we return. */ \
-        /*** ( arg1 ) */                                                    \
+        /* Recursively free entersubop + children,
+           as it'll be replaced by the op we return. */                     \
+        op_free( entersubop );                                              \
+        /* --> ( arg1 ) */                                                  \
                                                                             \
         /* create and return new op */                                      \
         OP *newop = newUNOP( OP_NULL, 0, arg );                             \
-        newop->op_type   = OP_CUSTOM;   /* can't do this in the new above, due to crashes pre-5.22 */                   \
+        /* can't do this in the new above, due to crashes pre-5.22 */       \
+        newop->op_type   = OP_CUSTOM;                                       \
         newop->op_ppaddr = x ## _pp;                                        \
-        /*** custom_op( arg1 ) */                                           \
+        /* --> custom_op( arg1 ) */                                         \
                                                                             \
         return newop;                                                       \
     }
