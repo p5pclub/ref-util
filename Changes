@@ -10,6 +10,7 @@
           (Christian Walde)
         * Add license in Pod. (Pete Houston)
         * Specify minimum version of perl (5.6.2). (Pete Houston)
+        * Support magic. (Tony Cook)
 
 0.020   2016-05-02
         * Work on Perl 5.22 and above with -DPERL_OP_PARENT.

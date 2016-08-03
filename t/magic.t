@@ -14,4 +14,4 @@ my ( $x, $y );
 tie $y, 'Foo';
 $x = [];
 
-ok( !is_arrayref($y), 'Will not accept tied hashref as arrayref' );
+ok( is_arrayref($y), 'Will not accept tied hashref as arrayref' );

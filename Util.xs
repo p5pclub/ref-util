@@ -33,6 +33,7 @@
 
 #define FUNC_BODY(cond)                                 \
     SV *ref = POPs;                                     \
+    SvGETMAGIC(ref);                                    \
     PUSHs( COND(cond) ? &PL_sv_yes : &PL_sv_no )
 
 #define DECL_RUNTIME_FUNC(x, cond)                              \
