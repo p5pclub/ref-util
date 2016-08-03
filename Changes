@@ -2,6 +2,7 @@
         * Support situations in op-code implementation where the parameters
           do not come as a list. (Zefram)
         * Fix memory leak in dangling op. (Zefram)
+        * Support magic (tied variables). (Tony Cook)
         * Rework op implementation. (Zefram)
           Thanks to Christian Walde for porting and merging Zefram's work
           from Hash::SharedMem.
@@ -10,7 +11,6 @@
           (Christian Walde)
         * Add license in Pod. (Pete Houston)
         * Specify minimum version of perl (5.6.2). (Pete Houston)
-        * Support magic. (Tony Cook)
 
 0.020   2016-05-02
         * Work on Perl 5.22 and above with -DPERL_OP_PARENT.

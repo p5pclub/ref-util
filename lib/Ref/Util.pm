@@ -155,6 +155,19 @@ There is also a family of functions with names like C<is_blessed_hashref>;
 these return true for blessed object instances that are implemented using
 the relevant underlying type.
 
+=item * Supports tied variables and magic
+
+Tied variables (used in L<Readonly>, for example) are supported.
+
+    use Ref::Util qw<is_plain_hashref>;
+    use Readonly;
+
+    Readonly::Scalar my $rh2 => { a => { b => 2 } };
+    is_plain_hashref($rh2); # success
+
+L<Ref::Util> added support for this in 0.100. Prior to this version
+the test would fail.
+
 =item * Ignores overloading
 
 These functions ignore overloaded operators and simply check the
@@ -178,28 +191,6 @@ duck-typing you can introspect to know what is available, and
 overloading does not lend to that.
 
 Overloading is I<cool, but terribly horrible>. 'Nuff said.
-
-=item * Readonly, tied variables, and magic
-
-Tied variables (used in L<Readonly>, for example) are not supported,
-as they are not references, but regular variables with added magic.
-
-Consider the following:
-
-    use Data::Printer;
-    use Readonly;
-    Readonly::Scalar my $rh2 => { a => { b => 2 } };
-    p $rh2->{a};
-
-    # result:
-    # "HASH(0x187dcc8)"
-
-This should print a hashref structure with key B<b> and value B<2>,
-but it doesn't. It prints a string. It should have retrieved the
-values but caused stringification instead.
-
-The problem here is that C<< $rh2->{a} >> is not a hashref, but a
-C<PVLV> with magic, so C<is_hashref> will correctly not detect it.
 
 =item * Ignores subtle types:
 
