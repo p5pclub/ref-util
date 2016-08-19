@@ -178,19 +178,8 @@ Overloading makes your variables opaque containers and hides away
 B<what> they are and instead require you to figure out B<how> to use
 them. This leads to code that has to test different abilities (in
 C<eval>, so it doesn't crash) and to interfaces that get around what
-a person thought you would do with a variable. Ugh. Double Ugh.
-For this reason they are not supported.
-
-This is also not duck-typing, as at least one person suggested. Duck
-typing provides a method that *works* and has different
-implementations. The difference is that here we have different methods
-(stringification, array dereferencing, hash dereferencing, callbacks,
-greater-than comparsion, etc.) which have to be tested each
-individually. This is the B<opposite> of duck-typing. Also, in
-duck-typing you can introspect to know what is available, and
-overloading does not lend to that.
-
-Overloading is I<cool, but terribly horrible>. 'Nuff said.
+a person thought you would do with a variable. This would have been
+alright, except there is no clear way of introspecting it.
 
 =item * Ignores subtle types:
 
