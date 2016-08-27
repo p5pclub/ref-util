@@ -6,6 +6,8 @@
         * Rework op implementation. (Zefram)
           Thanks to Christian Walde for porting and merging Zefram's work
           from Hash::SharedMem.
+        * Speed up by changing the top of the stack instead of POPing and
+          PUSHing. (Sergey Aleynikov)
         * Update ppport.h file from Devel::PPPort and remove the copy of
           SVRXOK since it's now available.
           (Christian Walde)
