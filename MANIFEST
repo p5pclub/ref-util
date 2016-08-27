@@ -12,5 +12,8 @@ t/functions.t
 t/list.t
 t/toomany.t
 t/magic.t
+t/b-concise.t
+t/magic-readonly.t
 tools/bench.pl
 Util.xs
+.travis.yml
