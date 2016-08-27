@@ -37,7 +37,7 @@ our %EXPORT_TAGS = ( 'all' => [qw<
     is_blessed_formatref
     is_blessed_refref
 >] );
-our @EXPORT      = ();
+
 our @EXPORT_OK   = ( @{ $EXPORT_TAGS{'all'} } );
 
 XSLoader::load('Ref::Util', $VERSION);
@@ -75,41 +75,52 @@ The difference:
 
 =item * Fast
 
-The benchmark:
+Here is a benchmark comparing similar checks.
 
     my $bench = Dumbbench->new(
         target_rel_precision => 0.005,
         initial_runs         => 20,
     );
 
-    my $ref = [];
+    my $amount = 1e7;
+    my $ref    = [];
     $bench->add_instances(
         Dumbbench::Instance::PerlSub->new(
-            name => 'XS',
-            code => sub { Ref::Util::is_arrayref($ref) for(1..1e7) },
+            name => 'Ref::Util::is_plain_arrayref (CustomOP)',
+            code => sub {
+                Ref::Util::is_plain_arrayref($ref) for ( 1 .. $amount )
+            },
         ),
 
         Dumbbench::Instance::PerlSub->new(
-            name => 'reftype',
-            code => sub { reftype($ref) eq 'ARRAY' for(1..1e7) },
+            name => 'ref(), reftype(), !blessed()',
+            code => sub {
+                ref $ref
+                    && Scalar::Util::reftype($ref) eq 'ARRAY'
+                    && !Scalar::Util::blessed($ref)
+                    for ( 1 .. $amount );
+            },
         ),
 
         Dumbbench::Instance::PerlSub->new(
-            name => 'PP',
-            code => sub { ref($ref) eq 'ARRAY' for(1..1e7) },
+            name => 'ref()',
+            code => sub { ref($ref) eq 'ARRAY' for ( 1 .. $amount ) },
         ),
+
+        Dumbbench::Instance::PerlSub->new(
+            name => 'Data::Util::is_array_ref',
+            code => sub { is_array_ref($ref) for ( 1 .. $amount ) },
+        ),
+
     );
 
 The results:
 
-    XS:      Ran 27 iterations (6 outliers).
-    XS:      Rounded run time per iteration: 3.0093e-01 +/- 4.4e-04 (0.1%)
+    ref():                                   6.2449e-01 +/- 3.1e-04 (0.0%)
+    ref(), reftype(), !blessed():            2.3022e+00 +/- 2.5e-03 (0.1%)
+    Ref::Util::is_plain_arrayref (CustomOP): 3.47157e-01 +/- 6.8e-05 (0.0%)
 
-    reftype: Ran 25 iterations (5 outliers).
-    reftype: Rounded run time per iteration: 9.173e-01 +/- 1.2e-03 (0.1%)
-
-    PP:      Ran 26 iterations (6 outliers).
-    PP:      Rounded run time per iteration: 6.1437e-01 +/- 3.4e-04 (0.1%)
+(Rounded run time per iteration)
 
 =item * No comparison against a string constant
 
@@ -428,6 +439,13 @@ Check for a blessed reference to a reference.
 
 =item * L<Scalar::Util>
 
+=item * L<Data::Util>
+
+A benchmark against L<Data::Util>.
+
+    Ref::Util::is_plain_arrayref: 3.47157e-01 +/- 6.8e-05 (0.0%)
+    Data::Util::is_array_ref:     6.7562e-01 +/- 7.5e-04 (0.1%)
+
 =back
 
 =head1 THANKS
@@ -444,11 +462,17 @@ The following people have been invaluable in their feedback and support.
 
 =item * Mattia Barbon
 
+=item * Zefram
+
+=item * Sergey Aleynikov
+
 =back
 
 =head1 AUTHORS
 
 =over 4
+
+=item * Aaron Crane
 
 =item * Vikentiy Fesunov
 
@@ -457,8 +481,6 @@ The following people have been invaluable in their feedback and support.
 =item * Gonzalo Diethelm
 
 =item * p5pclub
-
-=item * Aaron Crane
 
 =back
 
