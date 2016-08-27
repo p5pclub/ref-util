@@ -137,6 +137,7 @@ string:
 
 B<Note:> In future versions, the idea is to make the default functions
 use the B<plain> variation, which means explicitly non-blessed references.
+
 If you want to explicitly check for B<blessed> references, you should use
 the C<is_blessed_*> functions. There will be an C<is_any_*> variation
 which will act like the current main functions - not caring whether it's
@@ -226,8 +227,9 @@ an implementation that just calls an XS function - which is still
 faster than the Pure-Perl equivalent.
 
 We might also introduce a Pure-Perl version of everything, allowing
-to install this module where a compiler is not available, making the
-XS parts optional.
+to install and load the faster implementation seamlessly if possible.
+
+This will allow projects to use an optionally-Pure-Perl version.
 
 =head1 EXPORT
 
@@ -463,6 +465,8 @@ The following people have been invaluable in their feedback and support.
 =item * Mattia Barbon
 
 =item * Zefram
+
+=item * Tony Cook
 
 =item * Sergey Aleynikov
 
