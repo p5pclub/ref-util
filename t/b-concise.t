@@ -17,4 +17,4 @@ eval { $walker->() };
 my $exn = $@;
 
 ok(!$exn, 'deparsing ops succeeded');
-like($buf, qr/\b is_arrayref_xop \b/x, 'deparsing found the custom op');
+like($buf, qr/\b is_arrayref \b/x, 'deparsing found the custom op');

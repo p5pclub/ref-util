@@ -51,7 +51,7 @@
 
 #define DECL_MAIN_FUNC(x, cond)                 \
     static OP *                                 \
-    x ## _pp(pTHX)                              \
+    x ## _op(pTHX)                              \
     {                                           \
         dSP;                                    \
         FUNC_BODY(cond);                        \
@@ -139,7 +139,7 @@
         OP *newop = newUNOP( OP_NULL, 0, arg );                             \
         /* can't do this in the new above, due to crashes pre-5.22 */       \
         newop->op_type   = OP_CUSTOM;                                       \
-        newop->op_ppaddr = x ## _pp;                                        \
+        newop->op_ppaddr = x ## _op;                                        \
         /* --> custom_op( arg1 ) */                                         \
                                                                             \
         return newop;                                                       \
@@ -161,10 +161,10 @@
 
 #define INSTALL(x, ref)                                               \
     {                                                                 \
-        XopENTRY_set(& x ##_xop, xop_name, #x "_xop");                \
+        XopENTRY_set(& x ##_xop, xop_name, #x);                       \
         XopENTRY_set(& x ##_xop, xop_desc, "'" ref "' ref check");    \
         XopENTRY_set(& x ##_xop, xop_class, OA_UNOP);                 \
-        Perl_custom_op_register(aTHX_ x ##_pp, & x ##_xop);           \
+        Perl_custom_op_register(aTHX_ x ##_op, & x ##_xop);           \
         CV *cv = newXSproto_portable(                                 \
             "Ref::Util::" #x, THX_xsfunc_ ## x, __FILE__, "$"         \
         );                                                            \
