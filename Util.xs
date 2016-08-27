@@ -32,9 +32,9 @@
 #endif
 
 #define FUNC_BODY(cond)                                 \
-    SV *ref = POPs;                                     \
+    SV *ref = TOPs;                                     \
     SvGETMAGIC(ref);                                    \
-    PUSHs( COND(cond) ? &PL_sv_yes : &PL_sv_no )
+    SETs( COND(cond) ? &PL_sv_yes : &PL_sv_no )
 
 #define DECL_RUNTIME_FUNC(x, cond)                              \
     static void                                                 \
@@ -55,7 +55,6 @@
     {                                           \
         dSP;                                    \
         FUNC_BODY(cond);                        \
-        PUTBACK;                                \
         return NORMAL;                          \
     }
 
