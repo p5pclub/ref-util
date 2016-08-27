@@ -264,7 +264,7 @@ reference to another reference is not treated as a scalar reference:
 The rationale for this is two-fold. First, callers that want to decide how
 to handle inputs based on their reference type will usually want to treat a
 ref-ref and a scalar-ref differently. Secondly, this more closely matches
-the behavior of the C<ref> builtin and of L<Scalar::Util/reftype>, which
+the behavior of the C<ref> built-in and of L<Scalar::Util/reftype>, which
 report a ref-ref as C<REF> rather than C<SCALAR>.
 
 =head2 is_arrayref($ref)
