@@ -2,7 +2,7 @@ NAME
     Ref::Util - Utility functions for checking references
 
 VERSION
-    0.020
+    0.101
 
 DESCRIPTION
     Ref::Util introduces several functions to help identify references in a
@@ -18,41 +18,52 @@ DESCRIPTION
 
     *   Fast
 
-        The benchmark:
+        Here is a benchmark comparing similar checks.
 
             my $bench = Dumbbench->new(
                 target_rel_precision => 0.005,
                 initial_runs         => 20,
             );
 
-            my $ref = [];
+            my $amount = 1e7;
+            my $ref    = [];
             $bench->add_instances(
                 Dumbbench::Instance::PerlSub->new(
-                    name => 'XS',
-                    code => sub { Ref::Util::is_arrayref($ref) for(1..1e7) },
+                    name => 'Ref::Util::is_plain_arrayref (CustomOP)',
+                    code => sub {
+                        Ref::Util::is_plain_arrayref($ref) for ( 1 .. $amount )
+                    },
                 ),
 
                 Dumbbench::Instance::PerlSub->new(
-                    name => 'reftype',
-                    code => sub { reftype($ref) eq 'ARRAY' for(1..1e7) },
+                    name => 'ref(), reftype(), !blessed()',
+                    code => sub {
+                        ref $ref
+                            && Scalar::Util::reftype($ref) eq 'ARRAY'
+                            && !Scalar::Util::blessed($ref)
+                            for ( 1 .. $amount );
+                    },
                 ),
 
                 Dumbbench::Instance::PerlSub->new(
-                    name => 'PP',
-                    code => sub { ref($ref) eq 'ARRAY' for(1..1e7) },
+                    name => 'ref()',
+                    code => sub { ref($ref) eq 'ARRAY' for ( 1 .. $amount ) },
                 ),
+
+                Dumbbench::Instance::PerlSub->new(
+                    name => 'Data::Util::is_array_ref',
+                    code => sub { is_array_ref($ref) for ( 1 .. $amount ) },
+                ),
+
             );
 
         The results:
 
-            XS:      Ran 27 iterations (6 outliers).
-            XS:      Rounded run time per iteration: 3.0093e-01 +/- 4.4e-04 (0.1%)
+            ref():                                   6.2449e-01 +/- 3.1e-04 (0.0%)
+            ref(), reftype(), !blessed():            2.3022e+00 +/- 2.5e-03 (0.1%)
+            Ref::Util::is_plain_arrayref (CustomOP): 3.47157e-01 +/- 6.8e-05 (0.0%)
 
-            reftype: Ran 25 iterations (5 outliers).
-            reftype: Rounded run time per iteration: 9.173e-01 +/- 1.2e-03 (0.1%)
-
-            PP:      Ran 26 iterations (6 outliers).
-            PP:      Rounded run time per iteration: 6.1437e-01 +/- 3.4e-04 (0.1%)
+        (Rounded run time per iteration)
 
     *   No comparison against a string constant
 
@@ -69,10 +80,12 @@ DESCRIPTION
 
         Note: In future versions, the idea is to make the default functions
         use the plain variation, which means explicitly non-blessed
-        references. If you want to explicitly check for blessed references,
-        you should use the "is_blessed_*" functions. There will be an
-        "is_any_*" variation which will act like the current main functions
-        - not caring whether it's blessed or not.
+        references.
+
+        If you want to explicitly check for blessed references, you should
+        use the "is_blessed_*" functions. There will be an "is_any_*"
+        variation which will act like the current main functions - not
+        caring whether it's blessed or not.
 
         When calling "ref", you receive either the reference type (SCALAR,
         ARRAY, HASH, etc.) or the package it's blessed into.
@@ -98,6 +111,19 @@ DESCRIPTION
         "is_blessed_hashref"; these return true for blessed object instances
         that are implemented using the relevant underlying type.
 
+    *   Supports tied variables and magic
+
+        Tied variables (used in Readonly, for example) are supported.
+
+            use Ref::Util qw<is_plain_hashref>;
+            use Readonly;
+
+            Readonly::Scalar my $rh2 => { a => { b => 2 } };
+            is_plain_hashref($rh2); # success
+
+        Ref::Util added support for this in 0.100. Prior to this version the
+        test would fail.
+
     *   Ignores overloading
 
         These functions ignore overloaded operators and simply check the
@@ -108,41 +134,8 @@ DESCRIPTION
         what they are and instead require you to figure out how to use them.
         This leads to code that has to test different abilities (in "eval",
         so it doesn't crash) and to interfaces that get around what a person
-        thought you would do with a variable. Ugh. Double Ugh. For this
-        reason they are not supported.
-
-        This is also not duck-typing, as at least one person suggested. Duck
-        typing provides a method that *works* and has different
-        implementations. The difference is that here we have different
-        methods (stringification, array dereferencing, hash dereferencing,
-        callbacks, greater-than comparsion, etc.) which have to be tested
-        each individually. This is the opposite of duck-typing. Also, in
-        duck-typing you can introspect to know what is available, and
-        overloading does not lend to that.
-
-        Overloading is *cool, but terribly horrible*. 'Nuff said.
-
-    *   Readonly, tied variables, and magic
-
-        Tied variables (used in Readonly, for example) are not supported, as
-        they are not references, but regular variables with added magic.
-
-        Consider the following:
-
-            use Data::Printer;
-            use Readonly;
-            Readonly::Scalar my $rh2 => { a => { b => 2 } };
-            p $rh2->{a};
-
-            # result:
-            # "HASH(0x187dcc8)"
-
-        This should print a hashref structure with key b and value 2, but it
-        doesn't. It prints a string. It should have retrieved the values but
-        caused stringification instead.
-
-        The problem here is that "$rh2->{a}" is not a hashref, but a "PVLV"
-        with magic, so "is_hashref" will correctly not detect it.
+        thought you would do with a variable. This would have been alright,
+        except there is no clear way of introspecting it.
 
     *   Ignores subtle types:
 
@@ -172,8 +165,9 @@ DESCRIPTION
     than the Pure-Perl equivalent.
 
     We might also introduce a Pure-Perl version of everything, allowing to
-    install this module where a compiler is not available, making the XS
-    parts optional.
+    install and load the faster implementation seamlessly if possible.
+
+    This will allow projects to use an optionally-Pure-Perl version.
 
 EXPORT
     Nothing is exported by default. You can ask for specific subroutines
@@ -206,7 +200,7 @@ SUBROUTINES
     The rationale for this is two-fold. First, callers that want to decide
     how to handle inputs based on their reference type will usually want to
     treat a ref-ref and a scalar-ref differently. Secondly, this more
-    closely matches the behavior of the "ref" builtin and of "reftype" in
+    closely matches the behavior of the "ref" built-in and of "reftype" in
     Scalar::Util, which report a ref-ref as "REF" rather than "SCALAR".
 
   is_arrayref($ref)
@@ -353,6 +347,13 @@ SEE ALSO
 
     *   Scalar::Util
 
+    *   Data::Util
+
+        A benchmark against Data::Util.
+
+            Ref::Util::is_plain_arrayref: 3.47157e-01 +/- 6.8e-05 (0.0%)
+            Data::Util::is_array_ref:     6.7562e-01 +/- 7.5e-04 (0.1%)
+
 THANKS
     The following people have been invaluable in their feedback and support.
 
@@ -364,7 +365,15 @@ THANKS
 
     *   Mattia Barbon
 
+    *   Zefram
+
+    *   Tony Cook
+
+    *   Sergey Aleynikov
+
 AUTHORS
+    *   Aaron Crane
+
     *   Vikentiy Fesunov
 
     *   Sawyer X
@@ -373,5 +382,7 @@ AUTHORS
 
     *   p5pclub
 
-    *   Aaron Crane
+LICENSE
+    This software is made available under the MIT Licence as stated in the
+    accompanying LICENSE file.
 
