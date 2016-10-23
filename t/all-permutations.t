@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More 'tests' => 3;
+use Test::More 'tests' => 5;
 use Ref::Util ':all';
 
 # FIXME: plain regular expressions, blessed regular expressions
@@ -72,13 +72,8 @@ subtest 'non-refs' => sub {
     }
 };
 
-subtest 'plain references' => sub {
-    # I don't have the energy to figure this count
-    #plan 'tests' => scalar(@plain_keys) * scalar(@blessed_keys)
-    #                  # is_blessed_ref() is not in the %blessed hash
-    #                + 1 * scalar(@plain_keys);
-
-    plan 'tests' => 168;
+subtest 'plain references only work on is_plain functions' => sub {
+    plan 'tests' => 56;
 
     # each %plain should fail each test of the %blessed
     foreach my $plain_type (@plain_keys) {
@@ -124,6 +119,10 @@ subtest 'plain references' => sub {
             "is_blessed_refref($plain_type) is false",
         );
     }
+};
+
+subtest 'plain references' => sub {
+    plan 'tests' => 112;
 
     # each should fail everything except their own
     foreach my $plain_type (@plain_keys) {
@@ -329,8 +328,8 @@ subtest 'plain references' => sub {
     }
 };
 
-subtest 'blessed references' => sub {
-    plan 'tests' => 168;
+subtest 'blessed references only work on is_blessed functions' => sub {
+    plan 'tests' => 56;
 
     # each %blessed should fail each test of the %plain
     foreach my $blessed_type (@blessed_keys) {
@@ -376,6 +375,10 @@ subtest 'blessed references' => sub {
             "is_plain_refref($blessed_type) is false",
         );
     }
+};
+
+subtest 'blessed references' => sub {
+    plan 'tests' => 112;
 
     # each should fail everything except their own
     foreach my $blessed_type (@blessed_keys) {
