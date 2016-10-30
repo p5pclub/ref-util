@@ -2,6 +2,8 @@
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
+
+#define NEED_SvRX
 #include "ppport.h"
 
 #if defined(cv_set_call_checker) && defined(XopENTRY_set)

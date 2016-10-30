@@ -1,3 +1,7 @@
+
+        * GH #29: Fix support of 5.8.
+          (Sergey Aleynikov)
+
 0.101   2016-08-29
         * A test accidentally added a dependency on Readonly.pm. Fixed!
           (GH #30)
