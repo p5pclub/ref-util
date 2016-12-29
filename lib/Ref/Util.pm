@@ -116,9 +116,11 @@ Here is a benchmark comparing similar checks.
 
 The results:
 
-    ref():                                   6.2449e-01 +/- 3.1e-04 (0.0%)
-    ref(), reftype(), !blessed():            2.3022e+00 +/- 2.5e-03 (0.1%)
-    Ref::Util::is_plain_arrayref (CustomOP): 3.47157e-01 +/- 6.8e-05 (0.0%)
+
+    ref():                                   5.335e+00 +/- 1.8e-02 (0.3%)
+    ref(), reftype(), !blessed():            1.5545e+01 +/- 3.1e-02 (0.2%)
+    Ref::Util::is_plain_arrayref (CustomOP): 2.7951e+00 +/- 6.2e-03 (0.2%)
+    Data::Util::is_array_ref:                5.9074e+00 +/- 7.5e-03 (0.1%)
 
 (Rounded run time per iteration)
 
