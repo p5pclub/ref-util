@@ -1,6 +1,10 @@
+0.110   2016-12-29
 
-        * GH #29: Fix support of 5.8.
+        * GH #29, #34: Fix support of 5.8.
           (Sergey Aleynikov)
+        * Additional optimizations.
+          (Sergey Aleynikov)
+        * More extensive test suite.
 
 0.101   2016-08-29
         * A test accidentally added a dependency on Readonly.pm. Fixed!
