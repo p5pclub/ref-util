@@ -6,7 +6,7 @@ use XSLoader;
 
 use Exporter 5.57 'import';
 
-our $VERSION     = '0.101';
+our $VERSION     = '0.110';
 our %EXPORT_TAGS = ( 'all' => [qw<
     is_ref
     is_scalarref
@@ -56,7 +56,7 @@ Ref::Util - Utility functions for checking references
 
 =head1 VERSION
 
-0.101
+0.110
 
 =head1 DESCRIPTION
 
