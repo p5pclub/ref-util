@@ -1,6 +1,7 @@
 {{$NEXT}}
 
-          * Moved to Dist::Zilla.
+        * Fix test failure on 5.8.5 and under.
+        * Moved to Dist::Zilla.
 
 0.110   2016-12-29
 

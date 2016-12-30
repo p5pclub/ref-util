@@ -2,7 +2,10 @@ use strict;
 use warnings;
 use Test::More;
 use Ref::Util 'is_arrayref';
-use B::Concise qw<compile walk_output>;
+require B::Concise;
+
+plan skip_all => 'This version of B::Concise does not have "compile"'
+    if !B::Concise->can('compile');
 
 plan skip_all => 'nothing to do when no custom ops'
     if !Ref::Util::_using_custom_ops();
@@ -11,8 +14,8 @@ plan tests => 2;
 
 sub func { is_arrayref([]) }
 
-my $walker = compile('-exec', 'func', \&func);
-walk_output(\ my $buf);
+my $walker = B::Concise::compile('-exec', 'func', \&func);
+B::Concise::walk_output(\ my $buf);
 eval { $walker->() };
 my $exn = $@;
 
