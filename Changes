@@ -1,3 +1,7 @@
+{{$NEXT}}
+
+          * Moved to Dist::Zilla.
+
 0.110   2016-12-29
 
         * GH #29, #34: Fix support of 5.8.

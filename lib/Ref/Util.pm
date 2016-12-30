@@ -1,4 +1,5 @@
 package Ref::Util;
+# ABSTRACT: Utility functions for checking references
 
 use strict;
 use warnings;
@@ -6,7 +7,6 @@ use XSLoader;
 
 use Exporter 5.57 'import';
 
-our $VERSION     = '0.110';
 our %EXPORT_TAGS = ( 'all' => [qw<
     is_ref
     is_scalarref
@@ -40,7 +40,7 @@ our %EXPORT_TAGS = ( 'all' => [qw<
 
 our @EXPORT_OK   = ( @{ $EXPORT_TAGS{'all'} } );
 
-XSLoader::load('Ref::Util', $VERSION);
+XSLoader::load('Ref::Util', $Ref::Util::VERSION);
 
 1;
 
@@ -49,14 +49,6 @@ __END__
 =pod
 
 =encoding utf8
-
-=head1 NAME
-
-Ref::Util - Utility functions for checking references
-
-=head1 VERSION
-
-0.110
 
 =head1 DESCRIPTION
 
