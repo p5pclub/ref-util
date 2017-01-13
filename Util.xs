@@ -243,4 +243,11 @@ SV *
 _using_custom_ops()
     PPCODE:
         /* This is provided for the test suite; do not use it. */
-        USE_CUSTOM_OPS ? XSRETURN_YES : XSRETURN_NO;
+        /* Use if-else below because ternary operator cannot build on Sun
+           Studio 11 and 12. */
+        if (USE_CUSTOM_OPS) {
+            XSRETURN_YES;
+        }
+        else {
+            XSRETURN_NO;
+        }
