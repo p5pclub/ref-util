@@ -34,9 +34,11 @@
 #endif
 
 #define FUNC_BODY(cond)                                 \
+  {                                                     \
     SV *ref = TOPs;                                     \
     SvGETMAGIC(ref);                                    \
-    SETs( COND(cond) ? &PL_sv_yes : &PL_sv_no )
+    SETs( COND(cond) ? &PL_sv_yes : &PL_sv_no );        \
+  }
 
 #define DECL_RUNTIME_FUNC(x, cond)                              \
     static void                                                 \
@@ -81,6 +83,10 @@
     static OP *                                                             \
     THX_ck_entersub_args_ ## x(pTHX_ OP *entersubop, GV *namegv, SV *ckobj) \
     {                                                                       \
+        OP *pushop = NULL;                                                  \
+        OP *arg = NULL;                                                     \
+        OP *newop = NULL;                                                   \
+                                                                            \
         /* fix up argument structures */                                    \
         entersubop = ck_entersub_args_proto(entersubop, namegv, ckobj);     \
                                                                             \
@@ -98,7 +104,7 @@
                                                                             \
         /* Cast the entersub op as an op with a single child */             \
         /* and get that child (the args list or pushop). */                 \
-        OP *pushop = cUNOPx( entersubop )->op_first;                        \
+        pushop = cUNOPx( entersubop )->op_first;                            \
                                                                             \
         /* At this point we're still not sure if it's the right op,
            (because it should normally be a list() with the push inside it)
@@ -113,7 +119,7 @@
         /* Get a pointer to the first arg op */                             \
         /* so we can attach it to the custom op later on. */                \
         /* Notice "ex-rv2sv" calls are optimized away. */                   \
-        OP *arg = OpSIBLING( pushop );                                      \
+        arg = OpSIBLING( pushop );                                          \
                                                                             \
         /* --> entersub( list( push, arg1, cv ) ) + ( arg1, cv ) */         \
                                                                             \
@@ -137,7 +143,7 @@
         /* --> ( arg1 ) */                                                  \
                                                                             \
         /* create and return new op */                                      \
-        OP *newop = newUNOP( OP_NULL, 0, arg );                             \
+        newop = newUNOP( OP_NULL, 0, arg );                                 \
         /* can't do this in the new above, due to crashes pre-5.22 */       \
         newop->op_type   = OP_CUSTOM;                                       \
         newop->op_ppaddr = x ## _op;                                        \
@@ -162,11 +168,12 @@
 
 #define INSTALL(x, ref)                                               \
     {                                                                 \
+        CV *cv;                                                       \
         XopENTRY_set(& x ##_xop, xop_name, #x);                       \
         XopENTRY_set(& x ##_xop, xop_desc, "'" ref "' ref check");    \
         XopENTRY_set(& x ##_xop, xop_class, OA_UNOP);                 \
         Perl_custom_op_register(aTHX_ x ##_op, & x ##_xop);           \
-        CV *cv = newXSproto_portable(                                 \
+        cv = newXSproto_portable(                                     \
             "Ref::Util::" #x, THX_xsfunc_ ## x, __FILE__, "$"         \
         );                                                            \
         cv_set_call_checker(cv, THX_ck_entersub_args_ ## x, (SV*)cv); \
