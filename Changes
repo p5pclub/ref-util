@@ -1,5 +1,8 @@
 {{$NEXT}}
 
+        * GH #35: Fix compilation on Sun (Oracle) and some MSVC compilers.
+          (stphnlyd)
+
 0.111     2016-12-30 12:18:04+01:00 Europe/Amsterdam
 
         * Fix test failure on 5.8.5 and under.
