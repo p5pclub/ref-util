@@ -1,5 +1,7 @@
 {{$NEXT}}
 
+0.112     2017-01-15 17:15:26+01:00 Europe/Amsterdam
+
         * GH #35: Fix compilation on Sun (Oracle) and some MSVC compilers.
           (stphnlyd)
 
