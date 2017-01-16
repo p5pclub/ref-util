@@ -4,7 +4,7 @@ Ref::Util - Utility functions for checking references
 
 # VERSION
 
-version 0.112
+version 0.113
 
 # DESCRIPTION
 
@@ -419,7 +419,7 @@ accompanying LICENSE file.
 
 # COPYRIGHT AND LICENSE
 
-This software is Copyright (c) 2016 by Sawyer X.
+This software is Copyright (c) 2017 by Sawyer X.
 
 This is free software, licensed under:
 
