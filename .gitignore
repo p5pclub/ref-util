@@ -28,6 +28,7 @@ README
 *.bs
 *.sw?
 *.tar.gz
+/Util.c
 wrapper.c
 session.c
 wrapper/
