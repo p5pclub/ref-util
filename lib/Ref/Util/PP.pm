@@ -49,31 +49,37 @@ sub is_ref($) { ref $_[0] }
 
 sub is_scalarref($) {
     no warnings 'uninitialized';
+    Carp::croak("Too many arguments for is_scalarref") if @_ > 1;
     Scalar::Util::reftype( $_[0] ) eq 'SCALAR';
 }
 
 sub is_arrayref($) {
     no warnings 'uninitialized';
+    Carp::croak("Too many arguments for is_arrayref") if @_ > 1;
     Scalar::Util::reftype( $_[0] ) eq 'ARRAY';
 }
 
 sub is_hashref($) {
     no warnings 'uninitialized';
+    Carp::croak("Too many arguments for is_hashref") if @_ > 1;
     Scalar::Util::reftype( $_[0] ) eq 'HASH';
 }
 
 sub is_coderef($) {
     no warnings 'uninitialized';
+    Carp::croak("Too many arguments for is_coderef") if @_ > 1;
     Scalar::Util::reftype( $_[0] ) eq 'CODE';
 }
 
 sub is_regexpref($) {
     no warnings 'uninitialized';
+    Carp::croak("Too many arguments for is_regexpref") if @_ > 1;
     Scalar::Util::reftype( $_[0] ) eq 'REGEXP';
 }
 
 sub is_globref($) {
     no warnings 'uninitialized';
+    Carp::croak("Too many arguments for is_globref") if @_ > 1;
     Scalar::Util::reftype( $_[0] ) eq 'GLOB';
 }
 
@@ -83,16 +89,19 @@ sub is_formatref($) {
         Carp::croak("is_formatref() isn't available on Perl 5.6.x and under");
 
     no warnings 'uninitialized';
+    Carp::croak("Too many arguments for is_formatref") if @_ > 1;
     Scalar::Util::reftype( $_[0] ) eq 'FORMAT';
 }
 
 sub is_ioref($) {
     no warnings 'uninitialized';
+    Carp::croak("Too many arguments for is_ioref") if @_ > 1;
     Scalar::Util::reftype( $_[0] ) eq 'IO';
 }
 
 sub is_refref($) {
     no warnings 'uninitialized';
+    Carp::croak("Too many arguments for is_refref") if @_ > 1;
     Scalar::Util::reftype( $_[0] ) eq 'REF';
 }
 
@@ -100,29 +109,37 @@ sub is_refref($) {
 # -- is_plain_*
 # ----
 
-sub is_plain_ref($) { ref $_[0] && !Scalar::Util::blessed( $_[0] ) }
+sub is_plain_ref($) {
+    Carp::croak("Too many arguments for is_plain_ref") if @_ > 1;
+    ref $_[0] && !Scalar::Util::blessed( $_[0] );
+}
 
 sub is_plain_scalarref($) {
+    Carp::croak("Too many arguments for is_plain_scalarref") if @_ > 1;
     !defined Scalar::Util::blessed( $_[0] )
         && ref( $_[0] ) eq 'SCALAR';
 }
 
 sub is_plain_arrayref($) {
+    Carp::croak("Too many arguments for is_plain_arrayref") if @_ > 1;
     !defined Scalar::Util::blessed( $_[0] )
         && ref( $_[0] ) eq 'ARRAY';
 }
 
 sub is_plain_hashref($) {
+    Carp::croak("Too many arguments for is_plain_hashref") if @_ > 1;
     !defined Scalar::Util::blessed( $_[0] )
         && ref( $_[0] ) eq 'HASH';
 }
 
 sub is_plain_coderef($) {
+    Carp::croak("Too many arguments for is_plain_coderef") if @_ > 1;
     !defined Scalar::Util::blessed( $_[0] )
         && ref( $_[0] ) eq 'CODE';
 }
 
 sub is_plain_globref($) {
+    Carp::croak("Too many arguments for is_plain_globref") if @_ > 1;
     !defined Scalar::Util::blessed( $_[0] )
         && ref( $_[0] ) eq 'GLOB';
 }
@@ -132,11 +149,13 @@ sub is_plain_formatref($) {
         and
         Carp::croak("is_formatref() isn't available on Perl 5.6.x and under");
 
+    Carp::croak("Too many arguments for is_formatref") if @_ > 1;
     !defined Scalar::Util::blessed( $_[0] )
         && ref( $_[0] ) eq 'FORMAT';
 }
 
 sub is_plain_refref($) {
+    Carp::croak("Too many arguments for is_plain_refref") if @_ > 1;
     !defined Scalar::Util::blessed( $_[0] )
         && ref( $_[0] ) eq 'REF';
 }
@@ -145,29 +164,37 @@ sub is_plain_refref($) {
 # -- is_blessed_*
 # ----
 
-sub is_blessed_ref($) { defined Scalar::Util::blessed( $_[0] ) }
+sub is_blessed_ref($) {
+    Carp::croak("Too many arguments for is_blessed_ref") if @_ > 1;
+    defined Scalar::Util::blessed( $_[0] );
+}
 
 sub is_blessed_scalarref($) {
+    Carp::croak("Too many arguments for is_blessed_scalarref") if @_ > 1;
     defined Scalar::Util::blessed( $_[0] )
         && Scalar::Util::reftype( $_[0] ) eq 'SCALAR';
 }
 
 sub is_blessed_arrayref($) {
+    Carp::croak("Too many arguments for is_blessed_arrayref") if @_ > 1;
     defined Scalar::Util::blessed( $_[0] )
         && Scalar::Util::reftype( $_[0] ) eq 'ARRAY';
 }
 
 sub is_blessed_hashref($) {
+    Carp::croak("Too many arguments for is_blessed_hashref") if @_ > 1;
     defined Scalar::Util::blessed( $_[0] )
         && Scalar::Util::reftype( $_[0] ) eq 'HASH';
 }
 
 sub is_blessed_coderef($) {
+    Carp::croak("Too many arguments for is_blessed_coderef") if @_ > 1;
     defined Scalar::Util::blessed( $_[0] )
         && Scalar::Util::reftype( $_[0] ) eq 'CODE';
 }
 
 sub is_blessed_globref($) {
+    Carp::croak("Too many arguments for is_blessed_globref") if @_ > 1;
     defined Scalar::Util::blessed( $_[0] )
         && Scalar::Util::reftype( $_[0] ) eq 'GLOB';
 }
@@ -177,11 +204,13 @@ sub is_blessed_formatref($) {
         and
         Carp::croak("is_formatref() isn't available on Perl 5.6.x and under");
 
+    Carp::croak("Too many arguments for is_formatref") if @_ > 1;
     defined Scalar::Util::blessed( $_[0] )
         && Scalar::Util::reftype( $_[0] ) eq 'FORMAT';
 }
 
 sub is_blessed_refref($) {
+    Carp::croak("Too many arguments for is_blessed_refref") if @_ > 1;
     defined Scalar::Util::blessed( $_[0] )
         && Scalar::Util::reftype( $_[0] ) eq 'REF';
 }

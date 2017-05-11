@@ -27,6 +27,8 @@ for my $case (@cases) {
     scalar eval $code;
     my $exn = $@;
     like($exn, qr/^(?: \QUsage: Ref::Util::$name(ref)\E
+                     | \QToo many arguments for $name\E\b
+                     | \QToo many arguments for Ref::Util::PP::$name\E\b
                      | \QToo many arguments for Ref::Util::$name\E\b )/x,
          $desc);
 }
