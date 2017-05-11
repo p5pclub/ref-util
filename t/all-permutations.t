@@ -59,8 +59,6 @@ my @plain_keys   = sort keys %plain;
 my @blessed_keys = sort keys %blessed;
 
 subtest 'non-refs' => sub {
-    plan 'tests' => 7;
-
     foreach my $value ( 0, 1, 'string', '', undef, '0', '0e0' ) {
         # better string representation for test output
         my $rep = defined $value ? $value eq '' ? q{''} : $value : '(undef)';
@@ -70,11 +68,11 @@ subtest 'non-refs' => sub {
         # FIXME: is_any_ref
         #ok( !is_any_ref($value), "is_any_ref($rep) is false" );
     }
+
+    done_testing();
 };
 
 subtest 'plain references only work on is_plain functions' => sub {
-    plan 'tests' => 56;
-
     # each %plain should fail each test of the %blessed
     foreach my $plain_type (@plain_keys) {
         my $value = $plain{$plain_type};
@@ -119,11 +117,11 @@ subtest 'plain references only work on is_plain functions' => sub {
             "is_blessed_refref($plain_type) is false",
         );
     }
+
+    done_testing();
 };
 
 subtest 'plain references' => sub {
-    plan 'tests' => 112;
-
     # each should fail everything except their own
     foreach my $plain_type (@plain_keys) {
         my $value = $plain{$plain_type};
@@ -326,11 +324,11 @@ subtest 'plain references' => sub {
             );
         }
     }
+
+    done_testing();
 };
 
 subtest 'blessed references only work on is_blessed functions' => sub {
-    plan 'tests' => 56;
-
     # each %blessed should fail each test of the %plain
     foreach my $blessed_type (@blessed_keys) {
         my $value = $blessed{$blessed_type};
@@ -375,11 +373,11 @@ subtest 'blessed references only work on is_blessed functions' => sub {
             "is_plain_refref($blessed_type) is false",
         );
     }
+
+    done_testing();
 };
 
 subtest 'blessed references' => sub {
-    plan 'tests' => 112;
-
     # each should fail everything except their own
     foreach my $blessed_type (@blessed_keys) {
         my $value = $blessed{$blessed_type};
@@ -581,4 +579,6 @@ subtest 'blessed references' => sub {
             );
         }
     }
+
+    done_testing();
 };
