@@ -1,6 +1,5 @@
 META.yml
 blib/
-inc/
 pm_to_blib
 MANIFEST.bak
 /Makefile
@@ -18,7 +17,6 @@ META.yml
 MYMETA.*
 META.yml
 README
-^inc/
 /.build
 /_build_params
 /Build
@@ -30,6 +28,7 @@ README
 *.bs
 *.sw?
 *.tar.gz
+/Util.c
 wrapper.c
 session.c
 wrapper/
