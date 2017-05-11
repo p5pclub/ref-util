@@ -148,31 +148,26 @@ sub is_plain_refref($) {
 sub is_blessed_ref($) { defined Scalar::Util::blessed( $_[0] ) }
 
 sub is_blessed_scalarref($) {
-    no warnings 'uninitialized';
     defined Scalar::Util::blessed( $_[0] )
         && Scalar::Util::reftype( $_[0] ) eq 'SCALAR';
 }
 
 sub is_blessed_arrayref($) {
-    no warnings 'uninitialized';
     defined Scalar::Util::blessed( $_[0] )
         && Scalar::Util::reftype( $_[0] ) eq 'ARRAY';
 }
 
 sub is_blessed_hashref($) {
-    no warnings 'uninitialized';
     defined Scalar::Util::blessed( $_[0] )
         && Scalar::Util::reftype( $_[0] ) eq 'HASH';
 }
 
 sub is_blessed_coderef($) {
-    no warnings 'uninitialized';
     defined Scalar::Util::blessed( $_[0] )
         && Scalar::Util::reftype( $_[0] ) eq 'CODE';
 }
 
 sub is_blessed_globref($) {
-    no warnings 'uninitialized';
     defined Scalar::Util::blessed( $_[0] )
         && Scalar::Util::reftype( $_[0] ) eq 'GLOB';
 }
@@ -182,13 +177,11 @@ sub is_blessed_formatref($) {
         and
         Carp::croak("is_formatref() isn't available on Perl 5.6.x and under");
 
-    no warnings 'uninitialized';
     defined Scalar::Util::blessed( $_[0] )
         && Scalar::Util::reftype( $_[0] ) eq 'FORMAT';
 }
 
 sub is_blessed_refref($) {
-    no warnings 'uninitialized';
     defined Scalar::Util::blessed( $_[0] )
         && Scalar::Util::reftype( $_[0] ) eq 'REF';
 }
