@@ -45,7 +45,7 @@ our @EXPORT_OK   = ( @{ $EXPORT_TAGS{'all'} } );
 # -- is_*
 # ----
 
-sub is_ref($) { ref $_[0] }
+sub is_ref($) { length ref $_[0] }
 
 sub is_scalarref($) {
     no warnings 'uninitialized';
