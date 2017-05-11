@@ -63,10 +63,10 @@ subtest 'non-refs' => sub {
         # better string representation for test output
         my $rep = defined $value ? $value eq '' ? q{''} : $value : '(undef)';
 
-        ok( !is_ref($value), "is_ref($rep) is false" );
-
-        # FIXME: is_any_ref
-        #ok( !is_any_ref($value), "is_any_ref($rep) is false" );
+        for my $name (grep /^is_/, @Ref::Util::EXPORT_OK) {
+            my $func = do { no strict 'refs'; \&{"Ref::Util::$name"} };
+            ok( !$func->($value), "$name($rep) is false" );
+        }
     }
 
     done_testing();
