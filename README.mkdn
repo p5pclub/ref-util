@@ -4,7 +4,7 @@ Ref::Util - Utility functions for checking references
 
 # VERSION
 
-version 0.114
+version 0.200
 
 # DESCRIPTION
 
@@ -416,6 +416,7 @@ accompanying LICENSE file.
 - Aaron Crane <arc@cpan.org>
 - Vikenty Fesunov <vyf@cpan.org>
 - Gonzalo Diethelm <gonzus@cpan.org>
+- Karen Etheridge <ether@cpan.org>
 
 # COPYRIGHT AND LICENSE
 
