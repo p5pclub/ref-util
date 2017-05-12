@@ -41,11 +41,11 @@ our %EXPORT_TAGS = ( 'all' => [qw<
 our @EXPORT      = ();
 our @EXPORT_OK   = ( @{ $EXPORT_TAGS{'all'} } );
 
+sub _using_custom_ops () { 0 }
+
 # ----
 # -- is_*
 # ----
-
-sub _using_custom_ops () { 0 }
 
 sub is_ref($) { length ref $_[0] }
 
