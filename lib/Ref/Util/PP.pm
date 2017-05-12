@@ -149,9 +149,9 @@ sub is_plain_globref($) {
 sub is_plain_formatref($) {
     "$]" < 5.007
         and
-        Carp::croak("is_formatref() isn't available on Perl 5.6.x and under");
+        Carp::croak("is_plain_formatref() isn't available on Perl 5.6.x and under");
 
-    Carp::croak("Too many arguments for is_formatref") if @_ > 1;
+    Carp::croak("Too many arguments for is_plain_formatref") if @_ > 1;
     !defined Scalar::Util::blessed( $_[0] )
         && ref( $_[0] ) eq 'FORMAT';
 }
@@ -204,9 +204,9 @@ sub is_blessed_globref($) {
 sub is_blessed_formatref($) {
     "$]" < 5.007
         and
-        Carp::croak("is_formatref() isn't available on Perl 5.6.x and under");
+        Carp::croak("is_blessed_formatref() isn't available on Perl 5.6.x and under");
 
-    Carp::croak("Too many arguments for is_formatref") if @_ > 1;
+    Carp::croak("Too many arguments for is_blessed_formatref") if @_ > 1;
     defined Scalar::Util::blessed( $_[0] )
         && Scalar::Util::reftype( $_[0] ) eq 'FORMAT';
 }
