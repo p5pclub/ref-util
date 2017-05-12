@@ -8,6 +8,8 @@ use Carp         ();
 use Scalar::Util ();
 use Exporter 5.57 'import';
 
+use constant _FORMAT_REFS_WORK => ("$]" >= 5.007);
+
 our %EXPORT_TAGS = ( 'all' => [qw<
     is_ref
     is_scalarref
@@ -86,8 +88,8 @@ sub is_globref($) {
 }
 
 sub is_formatref($) {
-    "$]" < 5.007
-        and
+    _FORMAT_REFS_WORK
+        or
         Carp::croak("is_formatref() isn't available on Perl 5.6.x and under");
 
     no warnings 'uninitialized';
@@ -147,8 +149,8 @@ sub is_plain_globref($) {
 }
 
 sub is_plain_formatref($) {
-    "$]" < 5.007
-        and
+    _FORMAT_REFS_WORK
+        or
         Carp::croak("is_plain_formatref() isn't available on Perl 5.6.x and under");
 
     Carp::croak("Too many arguments for is_plain_formatref") if @_ > 1;
@@ -202,8 +204,8 @@ sub is_blessed_globref($) {
 }
 
 sub is_blessed_formatref($) {
-    "$]" < 5.007
-        and
+    _FORMAT_REFS_WORK
+        or
         Carp::croak("is_blessed_formatref() isn't available on Perl 5.6.x and under");
 
     Carp::croak("Too many arguments for is_blessed_formatref") if @_ > 1;
