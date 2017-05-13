@@ -11,6 +11,3 @@ WriteMakefile(
     INSTALLMAN3DIR => 'none',
     NORECURS => 1,
 );
-
-use Devel::PPPort;
-Devel::PPPort::WriteFile();
