@@ -73,7 +73,8 @@ sub is_ref($) { length ref $_[0] }
 sub is_scalarref($) {
     no warnings 'uninitialized';
     Carp::croak("Too many arguments for is_scalarref") if @_ > 1;
-    Scalar::Util::reftype( $_[0] ) eq 'SCALAR'
+    my $reftype = Scalar::Util::reftype( $_[0] );
+    ( $reftype eq 'SCALAR' || $reftype eq 'VSTRING' )
         && (!_RX_NEEDS_MAGIC || !_is_regexp($_[0]));
 }
 
@@ -142,7 +143,7 @@ sub is_plain_ref($) {
 sub is_plain_scalarref($) {
     Carp::croak("Too many arguments for is_plain_scalarref") if @_ > 1;
     !defined Scalar::Util::blessed( $_[0] )
-        && ref( $_[0] ) eq 'SCALAR';
+        && ( ref( $_[0] ) eq 'SCALAR' || ref( $_[0] ) eq 'VSTRING' );
 }
 
 sub is_plain_arrayref($) {
@@ -196,8 +197,9 @@ sub is_blessed_ref($) {
 
 sub is_blessed_scalarref($) {
     Carp::croak("Too many arguments for is_blessed_scalarref") if @_ > 1;
+    my $reftype = Scalar::Util::reftype( $_[0] );
     defined Scalar::Util::blessed( $_[0] )
-        && Scalar::Util::reftype( $_[0] ) eq 'SCALAR'
+        && ($reftype eq 'SCALAR' || $reftype eq 'VSTRING')
         && (!_RX_NEEDS_MAGIC || !_is_regexp( $_[0] ));
 }
 
