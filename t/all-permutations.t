@@ -3,6 +3,8 @@ use warnings;
 use Test::More 'tests' => 5;
 use Ref::Util ':all';
 
+use constant FORMAT_REFS_WORK => ("$]" >= 5.007);
+
 # FIXME: plain regular expressions, blessed regular expressions
 
 my $plain_formatref = do {
@@ -11,13 +13,13 @@ my $plain_formatref = do {
     *FH1{'FORMAT'};
 };
 
-my $blessed_formatref = bless do {
+my $blessed_formatref = !FORMAT_REFS_WORK ? undef : bless do {
     format FH2 =
 .
     *FH2{'FORMAT'};
 }, 'FormatRef';
 
-my $evil_blessed_formatref = bless do {
+my $evil_blessed_formatref = !FORMAT_REFS_WORK ? undef : bless do {
     format FH3 =
 .
     *FH3{'FORMAT'};
@@ -125,7 +127,7 @@ subtest 'plain references only work on is_plain functions' => sub {
         ok(
             !is_blessed_formatref($value),
             "is_blessed_formatref($plain_type) is false",
-        );
+        ) if FORMAT_REFS_WORK;
 
         ok(
             !is_blessed_refref($value),
@@ -288,29 +290,31 @@ subtest 'plain references' => sub {
         }
     }
 
-    foreach my $plain_type (@plain_keys) {
-        my $value = $plain{$plain_type};
+    if (FORMAT_REFS_WORK) {
+        foreach my $plain_type (@plain_keys) {
+            my $value = $plain{$plain_type};
 
-        if ( $plain_type eq 'plain_formatref' ) {
-            ok(
-                is_plain_formatref($value),
-                "is_plain_formatref($plain_type) is true",
-            );
+            if ( $plain_type eq 'plain_formatref' ) {
+                ok(
+                    is_plain_formatref($value),
+                    "is_plain_formatref($plain_type) is true",
+                );
 
-            ok(
-                is_formatref($value),
-                "is_formatref($plain_type) is true",
-            );
-        } else {
-            ok(
-                !is_plain_formatref($value),
-                "is_plain_formatref($plain_type) is false",
-            );
+                ok(
+                    is_formatref($value),
+                    "is_formatref($plain_type) is true",
+                );
+            } else {
+                ok(
+                    !is_plain_formatref($value),
+                    "is_plain_formatref($plain_type) is false",
+                );
 
-            ok(
-                !is_formatref($value),
-                "is_formatref($plain_type) is false",
-            );
+                ok(
+                    !is_formatref($value),
+                    "is_formatref($plain_type) is false",
+                );
+            }
         }
     }
 
@@ -381,7 +385,7 @@ subtest 'blessed references only work on is_blessed functions' => sub {
         ok(
             !is_plain_formatref($value),
             "is_plain_formatref($blessed_type) is false",
-        );
+        ) if FORMAT_REFS_WORK;
 
         ok(
             !is_plain_refref($value),
@@ -543,29 +547,31 @@ subtest 'blessed references' => sub {
         }
     }
 
-    foreach my $blessed_type (@blessed_keys) {
-        my $value = $blessed{$blessed_type};
+    if (FORMAT_REFS_WORK) {
+        foreach my $blessed_type (@blessed_keys) {
+            my $value = $blessed{$blessed_type};
 
-        if ( $blessed_type =~ /blessed_formatref/ ) {
-            ok(
-                is_blessed_formatref($value),
-                "is_blessed_formatref($blessed_type) is true",
-            );
+            if ( $blessed_type =~ /blessed_formatref/ ) {
+                ok(
+                    is_blessed_formatref($value),
+                    "is_blessed_formatref($blessed_type) is true",
+                );
 
-            ok(
-                is_formatref($value),
-                "is_formatref($blessed_type) is true",
-            );
-        } else {
-            ok(
-                !is_blessed_formatref($value),
-                "is_blessed_formatref($blessed_type) is false",
-            );
+                ok(
+                    is_formatref($value),
+                    "is_formatref($blessed_type) is true",
+                );
+            } else {
+                ok(
+                    !is_blessed_formatref($value),
+                    "is_blessed_formatref($blessed_type) is false",
+                );
 
-            ok(
-                !is_formatref($value),
-                "is_formatref($blessed_type) is false",
-            );
+                ok(
+                    !is_formatref($value),
+                    "is_formatref($blessed_type) is false",
+                );
+            }
         }
     }
 
