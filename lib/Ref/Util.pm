@@ -6,12 +6,17 @@ use warnings;
 
 use Exporter 5.57 'import';
 
-if (eval { require Ref::Util::XS; 1 }) {
-    _install_aliases('Ref::Util::XS');
-}
-else {
-    require Ref::Util::PP;
-    _install_aliases('Ref::Util::PP');
+{
+    my $impl = $ENV{REF_UTIL_IMPLEMENTATION}
+        || our $IMPLEMENTATION
+        || 'XS';
+    if ($impl ne 'PP' && eval { require Ref::Util::XS; 1 }) {
+        _install_aliases('Ref::Util::XS');
+    }
+    else {
+        require Ref::Util::PP;
+        _install_aliases('Ref::Util::PP');
+    }
 }
 
 sub _install_aliases {
