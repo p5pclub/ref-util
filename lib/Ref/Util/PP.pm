@@ -9,6 +9,7 @@ use Scalar::Util ();
 use Exporter 5.57 'import';
 
 use constant _FORMAT_REFS_WORK => ("$]" >= 5.007);
+use constant _RX_NEEDS_MAGIC   => (Scalar::Util::reftype(qr/^/) ne 'REGEXP');
 
 our %EXPORT_TAGS = ( 'all' => [qw<
     is_ref
@@ -45,6 +46,24 @@ our @EXPORT_OK   = ( @{ $EXPORT_TAGS{'all'} } );
 
 sub _using_custom_ops () { 0 }
 
+if (_RX_NEEDS_MAGIC) {
+    require B;
+    *_is_regexp = sub {
+        no warnings 'uninitialized';
+        return 0 if ref($_[0]) eq '';
+        my $o = B::svref_2object($_[0]) or return 0;
+        return 0 if Scalar::Util::blessed($o) ne 'B::PVMG';
+
+        my $m = $o->MAGIC;
+        while ($m) {
+            return 1 if $m->TYPE eq 'r';
+            $m = $m->MOREMAGIC;
+        }
+
+        return 0;
+    };
+}
+
 # ----
 # -- is_*
 # ----
@@ -54,7 +73,8 @@ sub is_ref($) { length ref $_[0] }
 sub is_scalarref($) {
     no warnings 'uninitialized';
     Carp::croak("Too many arguments for is_scalarref") if @_ > 1;
-    Scalar::Util::reftype( $_[0] ) eq 'SCALAR';
+    Scalar::Util::reftype( $_[0] ) eq 'SCALAR'
+        && !_is_regexp($_[0]);
 }
 
 sub is_arrayref($) {
@@ -78,7 +98,8 @@ sub is_coderef($) {
 sub is_regexpref($) {
     no warnings 'uninitialized';
     Carp::croak("Too many arguments for is_regexpref") if @_ > 1;
-    Scalar::Util::reftype( $_[0] ) eq 'REGEXP';
+    _RX_NEEDS_MAGIC ? _is_regexp( $_[0] )
+        : Scalar::Util::reftype( $_[0] ) eq 'REGEXP';
 }
 
 sub is_globref($) {
@@ -176,7 +197,8 @@ sub is_blessed_ref($) {
 sub is_blessed_scalarref($) {
     Carp::croak("Too many arguments for is_blessed_scalarref") if @_ > 1;
     defined Scalar::Util::blessed( $_[0] )
-        && Scalar::Util::reftype( $_[0] ) eq 'SCALAR';
+        && Scalar::Util::reftype( $_[0] ) eq 'SCALAR'
+        && !_is_regexp( $_[0] );
 }
 
 sub is_blessed_arrayref($) {
