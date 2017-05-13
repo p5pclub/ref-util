@@ -81,6 +81,7 @@ subtest 'non-refs' => sub {
         my $rep = defined $value ? $value eq '' ? q{''} : $value : '(undef)';
 
         for my $name (grep /^is_/, @Ref::Util::EXPORT_OK) {
+            next if !FORMAT_REFS_WORK && $name =~ /formatref/;
             my $func = do { no strict 'refs'; \&{"Ref::Util::$name"} };
             ok( !$func->($value), "$name($rep) is false" );
         }
