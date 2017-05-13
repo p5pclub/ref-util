@@ -74,7 +74,7 @@ sub is_scalarref($) {
     no warnings 'uninitialized';
     Carp::croak("Too many arguments for is_scalarref") if @_ > 1;
     Scalar::Util::reftype( $_[0] ) eq 'SCALAR'
-        && !_is_regexp($_[0]);
+        && (!_RX_NEEDS_MAGIC || !_is_regexp($_[0]));
 }
 
 sub is_arrayref($) {
@@ -198,7 +198,7 @@ sub is_blessed_scalarref($) {
     Carp::croak("Too many arguments for is_blessed_scalarref") if @_ > 1;
     defined Scalar::Util::blessed( $_[0] )
         && Scalar::Util::reftype( $_[0] ) eq 'SCALAR'
-        && !_is_regexp( $_[0] );
+        && (!_RX_NEEDS_MAGIC || !_is_regexp( $_[0] ));
 }
 
 sub is_blessed_arrayref($) {
