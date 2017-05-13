@@ -67,8 +67,13 @@ my %all;
 
 my ( %plain, %blessed );
 foreach my $key ( keys %all ) {
-    $key =~ /^plain_/  and $plain{$key}   = $all{$key};
-    $key =~ /blessed_/ and $blessed{$key} = $all{$key};
+    if (!FORMAT_REFS_WORK && $key =~ /formatref/) {
+        delete $all{$key};
+    }
+    else {
+        $key =~ /^plain_/  and $plain{$key}   = $all{$key};
+        $key =~ /blessed_/ and $blessed{$key} = $all{$key};
+    }
 }
 
 my @all_keys     = sort keys %all;
