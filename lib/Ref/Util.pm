@@ -7,7 +7,7 @@ use warnings;
 use Exporter 5.57 'import';
 
 {
-    my $impl = $ENV{REF_UTIL_IMPLEMENTATION}
+    my $impl = $ENV{PERL_REF_UTIL_IMPLEMENTATION}
         || our $IMPLEMENTATION
         || 'XS';
     if ($impl ne 'PP' && eval { require Ref::Util::XS; 1 }) {

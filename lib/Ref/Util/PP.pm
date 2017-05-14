@@ -260,4 +260,5 @@ L<Ref::Util>.
 
 Ref::Util:PP will be used automatically if Ref::Util is installed on a
 system with no C compiler, but you can force its usage by setting either
-C<$Ref::Util::IMPLEMENTATION> or the C<REF_UTIL_IMPLEMENTATION> to C<PP>.
+C<$Ref::Util::IMPLEMENTATION> or the C<PERL_REF_UTIL_IMPLEMENTATION>
+environment variable to C<PP>.

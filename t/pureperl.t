@@ -8,14 +8,14 @@ BEGIN {
 
     no warnings 'uninitialized';
     plan skip_all => "Already running pure-Perl tests"
-        if $ENV{REF_UTIL_IMPLEMENTATION} eq 'PP';
+        if $ENV{PERL_REF_UTIL_IMPLEMENTATION} eq 'PP';
 }
 
 use Config;
 use IPC::Open2 qw(open2);
 use File::Find qw(find);
 
-local $ENV{REF_UTIL_IMPLEMENTATION} = 'PP';
+local $ENV{PERL_REF_UTIL_IMPLEMENTATION} = 'PP';
 local $ENV{PERL5LIB} = join $Config{path_sep}, @INC;
 
 my $this_file = quotemeta __FILE__;
