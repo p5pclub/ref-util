@@ -100,7 +100,7 @@ sub is_regexpref($) {
     no warnings 'uninitialized';
     Carp::croak("Too many arguments for is_regexpref") if @_ > 1;
     _RX_NEEDS_MAGIC ? _is_regexp( $_[0] )
-        : Scalar::Util::reftype( $_[0] ) eq 'REGEXP';
+        : re::is_regexp( $_[0] );
 }
 
 sub is_globref($) {
