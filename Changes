@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+0.203     2017-05-14 10:55:51+02:00 Europe/Paris
+
+        * Rename $REF_UTIL_IMPLEMENTATION environment variable to
+          $PERL_REF_UTIL_IMPLEMENTATION (suggested by ether++)
+
 0.202     2017-05-14 10:39:52+02:00 Europe/Paris
 
         * Use of the Pure-Perl implementation can now be forced at runtime by
