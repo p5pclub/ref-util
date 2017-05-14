@@ -4,70 +4,31 @@ Ref::Util - Utility functions for checking references
 
 # VERSION
 
-version 0.201
+version 0.202
+
+# SYNOPSIS
+
+    use Ref::Util qw( is_plain_arrayref is_plain_hashref );
+
+    if ( is_plain_arrayref( $something ) ) {
+        print for @{ $something };
+    } elsif ( is_plain_hashref( $something ) ) {
+        print for sort values %{ $something };
+    }
 
 # DESCRIPTION
 
 Ref::Util introduces several functions to help identify references in a
-faster and **smarter** way. In short:
+**smarter** (and usually faster) way. In short:
 
-    ref $foo eq 'ARRAY'
+    # conventional approach             # with Ref::Util
 
-    # is now:
+    ref( $foo ) eq 'ARRAY'              is_plain_arrayref( $foo )
 
-    is_arrayref($foo)
+    use Scalar::Util qw( reftype );
+    reftype( $foo ) eq 'ARRAY'          is_arrayref( $foo )
 
 The difference:
-
-- Fast
-
-    Here is a benchmark comparing similar checks.
-
-        my $bench = Dumbbench->new(
-            target_rel_precision => 0.005,
-            initial_runs         => 20,
-        );
-
-        my $amount = 1e7;
-        my $ref    = [];
-        $bench->add_instances(
-            Dumbbench::Instance::PerlSub->new(
-                name => 'Ref::Util::is_plain_arrayref (CustomOP)',
-                code => sub {
-                    Ref::Util::is_plain_arrayref($ref) for ( 1 .. $amount )
-                },
-            ),
-
-            Dumbbench::Instance::PerlSub->new(
-                name => 'ref(), reftype(), !blessed()',
-                code => sub {
-                    ref $ref
-                        && Scalar::Util::reftype($ref) eq 'ARRAY'
-                        && !Scalar::Util::blessed($ref)
-                        for ( 1 .. $amount );
-                },
-            ),
-
-            Dumbbench::Instance::PerlSub->new(
-                name => 'ref()',
-                code => sub { ref($ref) eq 'ARRAY' for ( 1 .. $amount ) },
-            ),
-
-            Dumbbench::Instance::PerlSub->new(
-                name => 'Data::Util::is_array_ref',
-                code => sub { is_array_ref($ref) for ( 1 .. $amount ) },
-            ),
-
-        );
-
-    The results:
-
-        ref():                                   5.335e+00 +/- 1.8e-02 (0.3%)
-        ref(), reftype(), !blessed():            1.5545e+01 +/- 3.1e-02 (0.2%)
-        Ref::Util::is_plain_arrayref (CustomOP): 2.7951e+00 +/- 6.2e-03 (0.2%)
-        Data::Util::is_array_ref:                5.9074e+00 +/- 7.5e-03 (0.1%)
-
-    (Rounded run time per iteration)
 
 - No comparison against a string constant
 
@@ -161,16 +122,19 @@ The difference:
 
     Support might be added, if a good reason arises.
 
-Additionally, two implementations are available, depending on the perl
-version you have. For perls that supports Custom OPs, we actually add
-an OP (which is faster), and for perls that do not, we include
-an implementation that just calls an XS function - which is still
-faster than the Pure-Perl equivalent.
+- Usually fast
 
-We might also introduce a Pure-Perl version of everything, allowing
-to install and load the faster implementation seamlessly if possible.
+    When possible, Ref::Util uses [Ref::Util::XS](https://metacpan.org/pod/Ref::Util::XS) as its implementation. (If
+    you don't have a C compiler available, it uses a pure Perl fallback that has
+    all the other advantages of Ref::Util, but isn't as fast.)
 
-This will allow projects to use an optionally-Pure-Perl version.
+    In fact, Ref::Util::XS has two alternative implementations available
+    internally, depending on the features supported by the version of Perl
+    you're using. For Perls that supports custom OPs, we actually add an OP
+    (which is faster); for other Perls, the implementation that simply calls an
+    XS function (which is still faster than the pure-Perl equivalent).
+
+    See below for [benchmark results](#benchmarks).
 
 # EXPORT
 
@@ -374,16 +338,66 @@ Check for a blessed reference to a reference.
 
     is_blessed_refref( bless \[], $class ); # reference to array reference
 
+# BENCHMARKS
+
+Here is a benchmark comparing similar checks.
+
+    my $bench = Dumbbench->new(
+        target_rel_precision => 0.005,
+        initial_runs         => 20,
+    );
+
+    my $amount = 1e7;
+    my $ref    = [];
+    $bench->add_instances(
+        Dumbbench::Instance::PerlSub->new(
+            name => 'Ref::Util::is_plain_arrayref (CustomOP)',
+            code => sub {
+                Ref::Util::is_plain_arrayref($ref) for ( 1 .. $amount )
+            },
+        ),
+
+        Dumbbench::Instance::PerlSub->new(
+            name => 'ref(), reftype(), !blessed()',
+            code => sub {
+                ref $ref
+                    && Scalar::Util::reftype($ref) eq 'ARRAY'
+                    && !Scalar::Util::blessed($ref)
+                    for ( 1 .. $amount );
+            },
+        ),
+
+        Dumbbench::Instance::PerlSub->new(
+            name => 'ref()',
+            code => sub { ref($ref) eq 'ARRAY' for ( 1 .. $amount ) },
+        ),
+
+        Dumbbench::Instance::PerlSub->new(
+            name => 'Data::Util::is_array_ref',
+            code => sub { is_array_ref($ref) for ( 1 .. $amount ) },
+        ),
+
+    );
+
+The results:
+
+    ref():                                   5.335e+00 +/- 1.8e-02 (0.3%)
+    ref(), reftype(), !blessed():            1.5545e+01 +/- 3.1e-02 (0.2%)
+    Ref::Util::is_plain_arrayref (CustomOP): 2.7951e+00 +/- 6.2e-03 (0.2%)
+    Data::Util::is_array_ref:                5.9074e+00 +/- 7.5e-03 (0.1%)
+
+(Rounded run time per iteration)
+
+A benchmark against [Data::Util](https://metacpan.org/pod/Data::Util):
+
+    Ref::Util::is_plain_arrayref: 3.47157e-01 +/- 6.8e-05 (0.0%)
+    Data::Util::is_array_ref:     6.7562e-01 +/- 7.5e-04 (0.1%)
+
 # SEE ALSO
 
 - [Params::Classify](https://metacpan.org/pod/Params::Classify)
 - [Scalar::Util](https://metacpan.org/pod/Scalar::Util)
 - [Data::Util](https://metacpan.org/pod/Data::Util)
-
-    A benchmark against [Data::Util](https://metacpan.org/pod/Data::Util).
-
-        Ref::Util::is_plain_arrayref: 3.47157e-01 +/- 6.8e-05 (0.0%)
-        Data::Util::is_array_ref:     6.7562e-01 +/- 7.5e-04 (0.1%)
 
 # THANKS
 
