@@ -251,4 +251,13 @@ __END__
 
 =head1 SYNOPSIS
 
+    use Ref::Util;
+
 =head1 DESCRIPTION
+
+This module provides a pure-Perl implementation of the functions in
+L<Ref::Util>.
+
+Ref::Util:PP will be used automatically if Ref::Util is installed on a
+system with no C compiler, but you can force its usage by setting either
+C<$Ref::Util::IMPLEMENTATION> or the C<REF_UTIL_IMPLEMENTATION> to C<PP>.
