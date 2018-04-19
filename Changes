@@ -1,5 +1,8 @@
 {{$NEXT}}
 
+        * fix Makefile.PL so that the 'install' sub is patched before
+          WriteMakefile() is called (issue #41).
+
 0.203     2017-05-14 10:55:51+02:00 Europe/Paris
 
         * Rename $REF_UTIL_IMPLEMENTATION environment variable to
