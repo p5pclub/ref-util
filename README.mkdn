@@ -4,7 +4,7 @@ Ref::Util - Utility functions for checking references
 
 # VERSION
 
-version 0.203
+version 0.204
 
 # SYNOPSIS
 
