@@ -1,5 +1,7 @@
 {{$NEXT}}
 
+        * Fix AUTHORS section appearing twice. Nice catch, Emil Luta!
+
 0.204     2018-04-19 13:21:49+02:00 Europe/Oslo
 
         * fix Makefile.PL so that the 'install' sub is patched before
