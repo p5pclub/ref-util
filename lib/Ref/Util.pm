@@ -467,22 +467,6 @@ The following people have been invaluable in their feedback and support.
 
 =back
 
-=head1 AUTHORS
-
-=over 4
-
-=item * Aaron Crane
-
-=item * Vikentiy Fesunov
-
-=item * Sawyer X
-
-=item * Gonzalo Diethelm
-
-=item * p5pclub
-
-=back
-
 =head1 LICENSE
 
 This software is made available under the MIT Licence as stated in the
